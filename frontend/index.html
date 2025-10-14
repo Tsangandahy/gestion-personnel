@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PersoManager</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* --- Reset de base --- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #4b6cb7, #182848);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    /* --- Conteneur principal --- */
+    .formulaire_utilisateur {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    .formulaire_utilisateur img {
+      width: 100px;
+      margin-bottom: 20px;
+    }
+
+    .formulaire_utilisateur h3 {
+      margin-bottom: 30px;
+      color: #182848;
+      font-size: 24px;
+    }
+
+    /* --- Styles champs --- */
+    .champs_input {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 8px 0 20px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    .champs_input:focus {
+      border-color: #4b6cb7;
+      outline: none;
+      box-shadow: 0 0 5px #4b6cb7;
+    }
+
+    /* --- Bouton connexion --- */
+    .btn_connecter {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #4b6cb7;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn_connecter:hover {
+      background: #182848;
+    }
+
+    /* --- Message d'erreur / succès --- */
+    #login_message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    /* --- Table simplifiée pour les champs --- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    td {
+      padding: 8px 5px;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    td:first-child {
+      width: 30%;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="formulaire_utilisateur">
+    <img src="Image/Logo.JPG" alt="Logo">
+    <h3>Connexion Utilisateur</h3>
+    <table>
+      <tr>
+        <td>Email</td>
+        <td><input type="email" id="login_mail" class="champs_input" placeholder="exemple@domaine.com"></td>
+      </tr>
+      <tr>
+        <td>Mot de passe</td>
+        <td><input type="password" id="login_mot_pass" class="champs_input" placeholder="Votre mot de passe"></td>
+      </tr>
+    </table>
+    <button id="btn_login" class="btn_connecter"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
+    <p id="login_message"></p>
+  </div>
+
+  <script>
+    const apiBase = "http://localhost:5000/api/utilisateur";
+
+    document.getElementById("btn_login").addEventListener("click", async () => {
+      const mail = document.getElementById("login_mail").value.trim();
+      const mot_pass = document.getElementById("login_mot_pass").value.trim();
+      const msg = document.getElementById("login_message");
+
+      if (!mail || !mot_pass) {
+        msg.style.color = "red";
+        msg.innerText = "Email et mot de passe requis";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${apiBase}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mail, mot_pass })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const roleNormalise = (data.utilisateur.role || "Utilisateur").trim().toLowerCase();
+          localStorage.setItem("nom_utilisateur", data.utilisateur.nom || mail);
+          localStorage.setItem("role_utilisateur", roleNormalise);
+
+          msg.style.color = "green";
+          msg.innerText = "Connexion réussie ! Redirection...";
+          setTimeout(() => {
+            window.location.href = "menu_principal.html";
+          }, 1000);
+        } else {
+          msg.style.color = "red";
+          msg.innerText = data.message || "Identifiants invalides";
+        }
+      } catch (err) {
+        msg.style.color = "red";
+        msg.innerText = "Erreur serveur";
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

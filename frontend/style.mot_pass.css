@@ -1,0 +1,797 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: rgba(142, 142, 145, 0.509);
+    /* Couleur de fond */
+}
+
+.header {
+    width: 100%;
+    height: 100vh;
+    background-image: url(image/Image_06.jpg);
+    background-size: cover;
+    overflow: hidden;
+}
+
+nav {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 8%;
+    transition: 0.3s ease-in-out;
+}
+
+nav ul li {
+    display: inline-block;
+    margin: 18px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+}
+
+nav:hover {
+    background: rgba(0, 128, 0, 0.582);
+}
+
+nav ul li:hover a {
+    color: rgb(15, 15, 15);
+}
+
+.content {
+    color: white;
+    margin-left: 8%;
+    margin-top: 8%;
+}
+
+.logo {
+    color: yellow;
+    font-size: 13px;
+}
+
+
+.content h1 {
+    font-size: 25px;
+
+}
+
+.content h1 span {
+    color: rgb(228, 251, 17);
+}
+
+.content p {
+    font-size: 30px;
+}
+
+.links {
+    margin-top: 20px;
+    margin-left: 40px;
+}
+
+.links a {
+    text-decoration: none;
+    color: white;
+    display: inline-block;
+    margin: 20px;
+}
+
+.btn {
+    border: 2px solid;
+    padding: 15px 20px;
+    border-radius: 30px;
+}
+
+.btn:hover {
+    background-color: magenta;
+}
+
+/* Animation texte slide */
+.slide-left {
+    animation: slideleft 1s linear forwards;
+}
+
+.formulaire_utilisateur {
+    height: 300px;
+    width: 320px;
+    margin-left: 430px;
+    margin-top: 150px;
+    border-radius: 20px;
+    border: solid;
+    background-color: white;
+}
+
+.table_formulaire_utilisateur {
+    margin-left: 40px;
+    padding-top: 40px;
+}
+
+
+/* TABLE  */
+.table_SF {
+    width: calc(100% - 40px);
+    /* pour compenser les marges */
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: -18px;
+}
+
+
+.table_SF thead {
+    background-color: #ace95c;
+    color: white;
+}
+
+.table_SF thead th {
+    padding: 10px;
+}
+
+.table_SF tbody td {
+    padding: 8px;
+    /* border: 1px solid #ccc; */
+    vertical-align: middle;
+}
+
+.table_SF tbody tr:nth-child(even) {
+    background-color: #92d6c2;
+}
+
+.table_SF tbody tr:hover {
+    background-color: #d1e8f2;
+}
+
+.table_SF tbody img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ccc;
+}
+
+/* FIN TABLE */
+
+@keyframes slideleft {
+    0% {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0px);
+        opacity: 1;
+    }
+}
+
+
+
+
+/* Tableau */
+.list_personnel_A table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.list_personnel_A table th,
+.list_personnel_A table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.list_personnel_A table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.list_personnel_A table td img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+/* Pagination */
+#pagination {
+    margin-top: 15px;
+    text-align: center;
+}
+
+#pagination button {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    margin: 0 3px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#pagination button:hover {
+    background-color: #eee;
+}
+
+#pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.sary {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+}
+
+/* STYLE POUR LES FORMULAIRE  */
+.navbar {
+    background-color: #1dbdd285;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 20px;
+    height: 40px;
+}
+
+.contrat_header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-left: 20px;
+}
+
+.contrat_header table {
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.contrat_header td {
+    padding: 3px 5px;
+}
+
+.btn_liste_perso {
+    margin-top: 2px;
+    border-radius: 10px;
+
+}
+
+.btn_liste_perso img {
+    cursor: pointer;
+    display: block;
+}
+
+.list_personnel {
+    display: none;
+    border: 1px solid black;
+    padding: 5px;
+    background: #f8f8f8;
+    position: absolute;
+    top: 120px;
+    left: 20px;
+    font-size: 12px;
+    width: 450px;
+    height: 450px;
+    overflow: auto;
+    margin-top: -65px;
+}
+
+.list_personnel.vue {
+    display: block;
+}
+
+.list_personnel table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.list_personnel th,
+.list_personnel td {
+    border: 1px solid #ccc;
+    padding: 3px 5px;
+    text-align: left;
+}
+
+.btn-valider {
+    padding: 2px 5px;
+    font-size: 12px;
+}
+
+.fermer_liste {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 2px 5px;
+}
+
+#pagination button {
+    font-size: 12px;
+    padding: 2px 5px;
+    margin: 0 2px;
+    cursor: pointer;
+}
+
+#pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.petit_image {
+    width: 30px;
+    height: 25px;
+}
+
+.tableau_en_tete input {
+    width: 300px;
+    height: 30px;
+    padding-left: 30px;
+    border: 1px;
+}
+
+.formulaire_saisie .detail input,
+select,
+textarea {
+    background-color: #f3f3f9f5;
+}
+
+/* Quand le champ est activé (focus) */
+.formulaire_saisie .detail input:focus,
+.formulaire_saisie .detail select:focus,
+.formulaire_saisie .detail textarea:focus {
+    background-color: rgba(234, 243, 112, 0.756);
+    outline: none;
+}
+
+/* FIN STYLE POUR LES FORMUALIRE */
+
+/* DROPDOWN */
+.dropdown-content {
+    position: absolute;
+    background-color: rgba(22, 135, 33, 0.799);
+    /* min-width: 180px; */
+    flex-direction: column;
+    /* colonne */
+    /* margin-left: 20px; */
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left !important;
+    justify-content: left !important;
+    align-items: start !important;
+}
+
+.dropdown-content li a {
+    color: rgb(246, 239, 239);
+    text-decoration: none;
+    display: flex;
+    padding: 4px;
+}
+
+.dropdown-content li {
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    justify-content: left;
+    align-items: start;
+}
+
+.dropdown .dropdown-content li {
+
+    display: flex;
+    /* ou block si pas besoin de flex */
+    display: none;
+    /* list-style: none; */
+    
+    justify-content: left;
+    align-items: start;
+}
+
+/* Affiche le menu au hover */
+.dropdown:hover .dropdown-content li {
+    display: flex;
+    /* ou block si pas besoin de flex */
+    display: block;
+}
+
+li img {
+    height: 30px;
+    width: 30px;
+}
+
+/* Les liens prennent tout l’espace, sans espace vertical inutile */
+.dropdown-content li a {
+    text-align: left;
+    display: block;
+    /* padding: 8px 12px; */
+    /* tu peux réduire/ajuster selon ton design */
+    line-height: 1.2;
+    /* réduit l’espace vertical */
+    text-decoration: none;
+    color: white;
+    justify-content: left;
+    align-items: start;
+    /* background: #333; */
+}
+
+.dropdown-content li a:hover {
+    color: rgb(247, 13, 56);
+}
+
+/* fin drop down */
+
+textarea {
+    height: 80px;
+    width: 300px;
+}
+
+.date-filters {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px;
+}
+
+.date-filters label {
+    font-weight: bold;
+}
+
+.date-filters input {
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    width: 110px;
+}
+
+.date-filters button {
+    padding: 5px 10px;
+    background-color: #1dbdd2;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.date-filters button:hover {
+    background-color: #129aa7;
+}
+
+
+/* ===== Tableau ===== */
+.tableau_en_tete {
+    margin-top: 10px;
+    border: solid 1px;
+    background-color: rgba(250, 235, 215, 0.537);
+    margin-left: 20px;
+}
+
+#recap_section table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#recap_section th,
+#recap_section td {
+    border: 1px solid #000;
+    padding: 6px;
+    font-size: 13px;
+    text-align: center;
+}
+
+#recap_section th {
+    background-color: #f2f2f2;
+}
+
+/* Pagination */
+#pagination {
+    text-align: center;
+    margin-top: 10px;
+}
+
+#pagination button {
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#pagination button:hover {
+    background-color: #eee;
+}
+
+#pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.nom {
+    color: yellow;
+    font-weight: bold;
+    padding: 4px 8px;
+    background-color: #333;
+    border-radius: 5px;
+}
+
+.formulaire_saisie .detail {
+    padding-left: 30px;
+    padding-top: 20px;
+
+}
+
+.formulaire_saisie input,
+select {
+    width: 270px;
+    height: 30px;
+    /* background-color: rgba(228, 229, 240, 0.292); */
+    font-size: 18px;
+    border: solid 1px;
+}
+
+.btn_valider {
+    background-color: rgba(9, 255, 0, 0.384);
+    width: 150px;
+    height: 30px;
+    border-radius: 10px;
+    font-size: 15px;
+    border: solid 1px;
+}
+
+/* FORMULAIRE DE SAIE  */
+
+/* Menu hamburger */
+.menu_humberger {
+    height: 40px;
+    width: 40px;
+    cursor: pointer;
+    display: none;
+    /* Caché par défaut */
+}
+
+.btn-logout {
+    background-color: #e74c3c;
+    color: white;
+    padding: 6px 12px;
+    /* réduit le padding */
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    /* réduit la taille du texte */
+    transition: background-color 0.3s;
+    display: inline-block;
+}
+
+.nav-links ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+}
+
+.action-icon {
+    font-size: 16px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: transform 0.2s;
+}
+
+.action-icon:hover {
+    transform: scale(1.2);
+}
+
+.edit-icon {
+    color: #3498db;
+}
+
+.delete-icon {
+    color: #e74c3c;
+}
+
+  /* Bouton Déconnexion rouge */
+    .btn-logout {
+      background-color: #e74c3c;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: background-color 0.3s;
+      display: inline-block;
+    }
+
+    .btn-logout:hover {
+      background-color: #c0392b;
+    }
+
+    /* Bouton Retour bleu */
+    .btn-retour {
+      background-color: #3498db;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .btn-retour:hover {
+      background-color: #2980b9;
+    }
+
+    .role {
+      color: #00e0ff;
+      margin-left: 6px;
+      font-weight: normal;
+      font-size: 14px;
+    }
+      /* Affichage du rôle */
+    .user-info {
+      color: yellow;
+      font-weight: bold;
+      padding: 4px 8px;
+      background-color: #333;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    /* RESKA BOUTON AO AMIN'NY ACTION */
+ .action-btn {
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 4px;
+      font-size: 14px;
+      color: white;
+    }
+       .edit-btn {
+      background-color: #28a745;
+    }
+
+    .edit-btn:hover {
+      background-color: #218838;
+    }
+
+    .delete-btn {
+      background-color: #dc3545;
+    }
+
+    .delete-btn:hover {
+      background-color: #a71d2a;
+    }
+
+
+@media screen and (max-width: 1250px) {
+    .nav-links ul li a {
+        font-size: 15px;
+        margin-left: 3px;
+    }
+
+    .nom {
+        font-size: 10px;
+    }
+
+    .util {
+        display: none;
+    }
+
+    @media screen and (max-width: 930px) {
+        .nav-links ul li a {
+            font-size: 10px;
+            margin-left: 3px;
+        }
+
+        .Util2 span {
+            font-size: 10px;
+        }
+    }
+
+    @media screen and (max-width: 800px) {
+        .nav-links ul li a {
+            font-size: 8px;
+            margin-left: 3px;
+        }
+    }
+}
+@media screen and (max-width: 720px) {
+    .textTABLEAU{
+    font-size: 15px;
+}
+    .menu_humberger {
+        display: block;
+        order: 2;
+        margin-left: 4px;
+    }
+
+    .nav-links ul li a {
+        font-size: 15px;
+        /* margin-left: 3px; */
+    }
+
+    .nav-links {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 200px;
+        height: 100%;
+        margin-top: 40px;
+        background-color: #76e71aeb;
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        /* ✅ aligne le contenu en haut et à gauche */
+        transition: left 0.3s ease;
+        z-index: 10;
+        padding-left: 10px;
+        /* ✅ petit espace du bord gauche */
+    }
+
+    .nav-links.mobile-menu {
+        left: 5px;
+    }
+
+    .navbar .nav-links ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        /* ✅ aligne chaque <li> à gauche */
+        justify-content: flex-start;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    .navbar .nav-links ul li {
+        margin: 4px 0;
+        width: 100%;
+        text-align: left;
+        /* ✅ force le texte à s’aligner à gauche */
+    }
+
+    .formulaire_utilisateur {
+        margin-left: 100px;
+        margin-top: 100px;
+    }
+
+    .dropdown-content {
+        left: 40px;
+        background-color: rgb(14, 35, 222);
+    }
+
+    .nom {
+        color: yellow !important;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 4px 8px;
+        background-color: #333;
+        border-radius: 5px;
+    }
+
+    .util {
+        display: block;
+    }
+}

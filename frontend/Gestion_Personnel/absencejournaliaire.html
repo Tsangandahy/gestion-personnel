@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <title>PersoManager</title>
+  <link rel="stylesheet" href="../style.mot_pass.css">
+
+  <!-- Font Awesome pour icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <h1>N_sy_A</h1>
+    </div>
+
+    <div class="nav-links">
+      <ul>
+        <!-- Retour remplacé par icône + bouton bleu -->
+        <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- Nom utilisateur affiché ici -->
+        <li >
+          <label style="color: white;">Utilisateur :</label>
+          <span class="nom" style="color: yellow; font-weight: bold;">---</span>
+        </li>
+
+        <!-- Bouton Déconnexion -->
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <div id="contrats_section" style="margin-left: 25px; display:block;width: 100%;">
+    <label for="selected_date"> Date :</label>
+    <input type="date" id="selected_date">
+    <button id="btn_search">Rechercher</button>
+  </div>
+
+  <div>
+    <table id="recap_table" class="table_SF" border="1" cellpadding="5" style="margin-top: -2px;">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Date début absence</th>
+          <th>Date prise de service</th>
+          <th>Total jours</th>
+          <th>Type</th>
+          <th>Motif</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // 🟢 Afficher le nom de l'utilisateur connecté
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+    } else {
+      // Si non connecté → retour à la page login
+      window.location.href = "../index.html";
+    }
+
+    // 🟥 Bouton Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // 🟡 Rechercher les absents d’une date
+    const dateInput = document.getElementById("selected_date");
+    const tableBody = document.querySelector("#recap_table tbody");
+    const btn = document.getElementById("btn_search");
+
+    btn.addEventListener("click", async () => {
+      const selectedDate = dateInput.value;
+      if (!selectedDate) {
+        alert("Veuillez sélectionner une date !");
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/absance/date/${selectedDate}`);
+        if (!res.ok) throw new Error("Erreur serveur");
+        const absents = await res.json();
+
+        tableBody.innerHTML = "";
+        if (absents.length === 0) {
+          tableBody.innerHTML = "<tr><td colspan='7'>Aucun absent pour cette date</td></tr>";
+          return;
+        }
+
+        absents.forEach(a => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${a.Nom}</td>
+            <td>${a.Prenom}</td>
+            <td>${a.DateDebut}</td>
+            <td>${a.DatePriseService}</td>
+            <td>${a.TotalJours}</td>
+            <td>${a.Type}</td>
+            <td>${a.Motif}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (err) {
+        console.error(err);
+        tableBody.innerHTML = "<tr><td colspan='7'>Erreur lors de la récupération des absents</td></tr>";
+      }
+    });
+  </script>
+</body>
+
+</html>

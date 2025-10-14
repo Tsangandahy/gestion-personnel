@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>PersoManager</title>
+  <style>
+    .dropdown > a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: white;
+      font-size: 16px;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+
+    .dropdown-content {
+      background-color: #76e71af6;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .dropdown-content li a {
+      display: block;
+      padding: 8px 12px;
+      color: black;
+      text-decoration: none;
+    }
+
+    .user-info {
+      color: yellow;
+      font-weight: bold;
+      padding: 4px 8px;
+      background-color: #333;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    .role {
+      color: #00e0ff;
+      margin-left: 6px;
+      font-weight: normal;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <nav class="navbar">
+      <div class="logo">
+        <h1>BD</h1>
+      </div>
+
+      <div class="nav-links">
+        <ul>
+          <!-- 🔧 Paramétrage visible uniquement pour Admin -->
+          <li class="dropdown" id="menu_parametrage" style="display: none;">
+            <a href="#"><i class="fa-solid fa-gear"></i> <i class="fa-solid fa-caret-down"></i></a>
+            <ul class="dropdown-content">
+              <li><a href="Gestion_utilisateur/inscription.html">Inscription</a></li>
+              <li><a href="Gestion_utilisateur/liste_utilisateur.html">Visualisation</a></li>
+            </ul>
+          </li>
+
+          <li><a href="Gestion_Personnel/page_de_garde_gestion_personnel.html">Gestion de Personnel</a></li>
+
+          <!-- 🧍 Utilisateur -->
+          <li>
+            <label style="color: white;">Utilisateur :</label>
+            <span class="user-info">
+              <span class="nom">---</span>
+              <span class="role">(---)</span>
+            </span>
+          </li>
+
+          <!-- 🚪 Déconnexion -->
+          <li><a href="#" id="btn_quitter" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+        </ul>
+      </div>
+
+      <img src="image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+    </nav>
+   <div class="content">
+      <h1 class="slide-left">Gestion de <span>Personnel</span></h1>
+      <p class="slide-left"></p>
+      <div class="links slide-left">
+        <a href="#" class="btn">e-mail: nainatsangandahy@gmail.com</a>
+        <a href="#" class="btn">Tél: 038 23 121 43</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 🟢 Menu hamburger
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
+
+    // 🟢 Récupération nom + rôle
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur) {
+      // Nom
+      document.querySelector(".nom").textContent = nomUtilisateur;
+
+      // Rôle avec majuscule
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
+
+      // Affiche Paramétrage seulement si admin
+      if (roleUtilisateur === "admin") {
+        document.getElementById("menu_parametrage").style.display = "block";
+      }
+    } else {
+      // Redirection si non connecté
+      window.location.href = "index.html";
+    }
+
+    // 🔴 Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

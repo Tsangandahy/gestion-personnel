@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <title>PersoManager</title>
+
+  <!-- Font Awesome pour icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  <div class="header">
+    <nav class="navbar">
+      <div class="logo">
+         <h1>RH</h1>
+      </div>
+
+      <div class="nav-links">
+        <ul>
+          <!-- Retour -->
+          <li>
+            <a href="../menu_principal.html" class="btn-retour" title="Retour">
+              <i class="fa-solid fa-arrow-left"></i> Retour
+            </a>
+          </li>
+
+          <li><a href="Listepersonnel.html">Liste</a></li>
+          <li><a href="persoajout.html">Ajout</a></li>
+
+          <li class="dropdown">
+            <a href="#">Contrat ▾</a>
+            <ul class="dropdown-content">
+              <li><a href="persocontrat.html">Saisie</a></li>
+              <li><a href="persocontratparperso.html">Visualisation</a></li>
+            </ul>
+          </li>
+
+          <li class="dropdown">
+            <a href="#">Absence ▾</a>
+            <ul class="dropdown-content">
+              <li><a href="persoabsance.html">Ajout</a></li>
+              <li><a href="persoabsanceparperso.html">Visualisation par personne</a></li>
+              <li><a href="etatabsence.html">Visualisation global</a></li>
+              <li><a href="absencejournaliaire.html">Absence journalière</a></li>
+            </ul>
+          </li>
+
+          <li class="dropdown">
+            <a href="#">Sanction ▾</a>
+            <ul class="dropdown-content">
+              <li><a href="persosanction.html">Saisie</a></li>
+              <li><a href="persosanctiondetailparpersonne.html">Visualisation</a></li>
+            </ul>
+          </li>
+
+          <!-- Nom et rôle utilisateur -->
+          <li class="util">
+            <label style="color: white;">Utilisateur :</label>
+            <span class="user-info">
+              <span class="nom">---</span>
+              <span class="role">(---)</span>
+            </span>
+          </li>
+
+          <!-- Déconnexion -->
+          <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+        </ul>
+      </div>
+
+      <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+    </nav>
+
+    <div class="content">
+      <h1 class="slide-left">Gestion de <span>Personnel</span></h1>
+      <p class="slide-left"></p>
+      <div class="links slide-left">
+        <a href="#" class="btn">e-mail: nainatsangandahy@gmail.com</a>
+        <a href="#" class="btn">Tél: 038 23 121 43</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Menu hamburger
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+
+    menuhumberger.addEventListener('click', () => {
+      navlinks.classList.toggle('mobile-menu');
+    });
+
+    document.querySelectorAll(".nav-links a").forEach(link => {
+      link.addEventListener("click", () => {
+        navlinks.classList.remove("mobile-menu");
+      });
+    });
+
+    // Afficher nom et rôle utilisateur depuis localStorage
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      // Affiche le rôle avec première lettre majuscule
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
+    } else {
+      // Redirection si non connecté
+      window.location.href = "../index.html";
+    }
+
+    // Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
+      window.location.href = "../index.html";
+    });
+  </script>
+</body>
+
+</html>

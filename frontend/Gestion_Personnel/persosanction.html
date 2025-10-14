@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PersoManager</title>
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Bouton Retour bleu */
+    .btn-retour {
+      background-color: #3498db;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .btn-retour:hover {
+      background-color: #2980b9;
+    }
+
+    /* Bouton Déconnexion rouge */
+    .btn-logout {
+      background-color: #e74c3c;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: background-color 0.3s;
+    }
+
+    .btn-logout:hover {
+      background-color: #c0392b;
+    }
+
+    .nav-links ul {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      font-size: 0.9rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>Ajout sanction</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <!-- 🔵 Bouton retour en icône -->
+          <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- 🟡 Nom utilisateur affiché ici -->
+        <li class="Util2">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+
+        <!-- 🔴 Bouton Déconnexion rouge -->
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <header>
+    <div class="formulaire_saisie">
+      <form id="postForm" class="detail">
+        <div>
+          <table>
+            <tr>
+              <td>Nom</td>
+              <td>:</td>
+              <td><input type="text" id="nom" readonly></td>
+              <td><img src="../Image/image_personnel.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+            </tr>
+            <tr>
+              <td>Prénom</td>
+              <td>:</td>
+              <td><input type="text" id="prenom" readonly></td>
+            </tr>
+            <tr style="display: none;">
+              <td>ID Personnel</td>
+              <td>:</td>
+              <td><input type="text" id="Id_personnel_input" readonly></td>
+            </tr>
+            <tr>
+              <td>Date</td>
+              <td>:</td>
+              <td><input type="date" id="Date_emission"></td>
+            </tr>
+            <tr>
+              <td>Type</td>
+              <td>:</td>
+              <td>
+                <select id="Type_sanction">
+                  <option value="">-- Sélectionner --</option>
+                  <option value="1ère avertissement verbal">1ère avertissement verbal</option>
+                  <option value="2ème avertissement verbal">2ème avertissement verbal</option>
+                  <option value="1ère avertissement écrit">1ère avertissement écrit</option>
+                  <option value="2ème avertissement écrit">2ème avertissement écrit</option>
+                  <option value="3ème avertissement écrit">3ème avertissement écrit</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>Motif</td>
+              <td>:</td>
+              <td><textarea id="Motif" cols="40"></textarea></td>
+            </tr>
+          </table>
+          <button id="btn-submit" class="btn_valider">Valider</button>
+        </div>
+      </form>
+    </div>
+  </header>
+
+  <!-- Liste du personnel -->
+  <div class="list_personnel">
+    <input type="text" class="Recherche" placeholder="Rechercher...">
+    <button class="fermer_liste">X</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>CIN</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="personnel-contener"></tbody>
+    </table>
+    <div id="pagination"></div>
+  </div>
+
+  <input type="hidden" id="Id_personnel">
+
+  <script>
+    const API_URL = "http://localhost:5000/api/personnels";
+    const SANCTION_API = "http://localhost:5000/api/sanctions";
+
+    const personnelContainer = document.getElementById("personnel-contener");
+    const listpersonnel = document.querySelector(".list_personnel");
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    const petitimage = document.querySelector(".petit_image");
+    const fermerliste = document.querySelector(".fermer_liste");
+
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
+    petitimage.addEventListener('click', () => listpersonnel.classList.toggle('vue'));
+    fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
+
+    let currentPage = 1;
+    const rowsPerPage = 6;
+    let allPersonnels = [];
+
+    function chargerpersonnel() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          allPersonnels = data;
+          afficherPersonnels();
+          afficherPagination();
+        })
+        .catch(err => console.error("Erreur API :", err));
+    }
+
+    function afficherPersonnels() {
+      personnelContainer.innerHTML = "";
+      if (allPersonnels.length === 0) {
+        personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
+        return;
+      }
+      let start = (currentPage - 1) * rowsPerPage;
+      let end = start + rowsPerPage;
+      let personnels = allPersonnels.slice(start, end);
+      personnels.forEach((personnel, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${personnel.Nom}</td>
+          <td>${personnel.Prenom}</td>
+          <td>${personnel.CIN || ""}</td>
+          <td><button class="btn-valider"><<</button></td>`;
+        personnelContainer.appendChild(row);
+      });
+
+      document.querySelectorAll(".btn-valider").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+          let personnel = allPersonnels[(currentPage - 1) * rowsPerPage + i];
+          document.getElementById("Id_personnel").value = personnel._id;
+          document.getElementById("Id_personnel_input").value = personnel._id;
+          document.getElementById("nom").value = personnel.Nom;
+          document.getElementById("prenom").value = personnel.Prenom;
+          listpersonnel.classList.remove("vue");
+        });
+      });
+    }
+
+    function afficherPagination() {
+      const paginationContainer = document.getElementById("pagination");
+      paginationContainer.innerHTML = "";
+      const totalPages = Math.ceil(allPersonnels.length / rowsPerPage);
+
+      const prev = document.createElement("button");
+      prev.textContent = "◀";
+      prev.disabled = currentPage === 1;
+      prev.addEventListener("click", () => {
+        currentPage--;
+        afficherPersonnels();
+        afficherPagination();
+      });
+      paginationContainer.appendChild(prev);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.style.backgroundColor = "#ddd";
+        btn.addEventListener("click", () => {
+          currentPage = i;
+          afficherPersonnels();
+          afficherPagination();
+        });
+        paginationContainer.appendChild(btn);
+      }
+
+      const next = document.createElement("button");
+      next.textContent = "▶";
+      next.disabled = currentPage === totalPages;
+      next.addEventListener("click", () => {
+        currentPage++;
+        afficherPersonnels();
+        afficherPagination();
+      });
+      paginationContainer.appendChild(next);
+    }
+
+    document.getElementById("btn-submit").addEventListener("click", (e) => {
+      e.preventDefault();
+      const idpersonnel = document.getElementById("Id_personnel").value;
+      const Date_emission = document.getElementById("Date_emission").value;
+      const Type_sanction = document.getElementById("Type_sanction").value;
+      const Motif = document.getElementById("Motif").value;
+
+      if (!idpersonnel || !Date_emission || !Type_sanction || !Motif) {
+        alert("⚠️ Merci de remplir tous les champs !");
+        return;
+      }
+
+      fetch(SANCTION_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idpersonnel, Date_emission, Type_sanction, Motif })
+      })
+        .then(res => res.json())
+        .then(() => alert("✅ Sanction enregistrée avec succès !"))
+        .catch(err => {
+          console.error(err);
+          alert("Erreur serveur ❌");
+        });
+    });
+
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) document.querySelector(".nom").textContent = nomUtilisateur;
+    else window.location.href = "../index.html";
+
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    window.onload = chargerpersonnel;
+  </script>
+</body>
+
+</html>

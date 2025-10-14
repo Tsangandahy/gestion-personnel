@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>PersoManager</title>
+
+  <style>
+    /* Bouton retour stylisé */
+    .btn-retour {
+      display: inline-flex;
+      align-items: center;
+      background-color: #007bff;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .btn-retour:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-retour i {
+      margin-right: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>Détail de sanction par personnel</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <!-- 🔹 Bouton Retour remplacé par une icône bleue -->
+        <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- Nom utilisateur affiché -->
+        <li class="Util2">
+          <label style="color:white;">Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+
+        <!-- Bouton Déconnexion rouge -->
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <!-- Header / Formulaire personnel -->
+  <header>
+    <div class="contrat_header">
+      <div style="width: 100%;">
+        <table class="tableau_en_tete">
+          <tr>
+            <td>Nom</td>
+            <td>:</td>
+            <td><input type="text" id="nom" readonly></td>
+            <td><img src="../Image/image_personnel.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+          </tr>
+          <tr>
+            <td>Prénom</td>
+            <td>:</td>
+            <td><input type="text" id="prenom" readonly></td>
+          </tr>
+          <tr style="display:none;">
+            <td>ID Personnel</td>
+            <td>:</td>
+            <td><input type="text" id="Id_personnel_input" readonly></td>
+          </tr>
+        </table>
+
+        <!-- Section pour afficher les sanctions -->
+        <div id="sanction_section" style="margin:20px 0; display:block;width: 100%;">
+          <h3><span id="nom_personnel_sanction" style="display: none;"></span></h3>
+          <table class="table_SF" border="1" cellpadding="5">
+            <thead>
+              <tr>
+                <th>Date d'émission</th>
+                <th>Type de sanction</th>
+                <th>Motif</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="sanction_table">
+              <tr>
+                <td colspan="6">Sélectionnez un personnel pour voir ses sanctions</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Liste du personnel -->
+  <div class="list_personnel">
+    <input type="text" class="Recherche" placeholder="Rechercher...">
+    <button class="fermer_liste">X</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>CIN</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="personnel-contener">
+        <tr>
+          <td colspan="6">Sélectionnez un personnel</td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="pagination"></div>
+  </div>
+
+  <input type="hidden" id="Id_personnel">
+
+  <script>
+    const API_URL = "http://localhost:5000/api/personnels";
+    const SANCTION_API = "http://localhost:5000/api/sanctions";
+
+    const personnelContainer = document.getElementById("personnel-contener");
+    const listpersonnel = document.querySelector(".list_personnel");
+    const petitimage = document.querySelector(".petit_image");
+    const fermerliste = document.querySelector(".fermer_liste");
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+
+    // Menu hamburger et toggle liste personnel
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
+    petitimage.addEventListener('click', () => listpersonnel.classList.toggle('vue'));
+    fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
+
+    // Afficher nom utilisateur connecté
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // Bouton Quitter
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // Gestion personnel et sanctions
+    let currentPage = 1;
+    const rowsPerPage = 6;
+    let allPersonnels = [];
+
+    function chargerpersonnel() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => { allPersonnels = data; afficherPersonnels(); afficherPagination(); })
+        .catch(err => console.error("Erreur API :", err));
+    }
+
+    function afficherPersonnels() {
+      personnelContainer.innerHTML = "";
+      if (!allPersonnels.length) {
+        personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
+        return;
+      }
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const personnels = allPersonnels.slice(start, end);
+
+      personnels.forEach((personnel, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${personnel.Nom}</td>
+                         <td>${personnel.Prenom}</td>
+                         <td>${personnel.CIN || "-"}</td>
+                         <td><button class="btn-valider"><<</button></td>`;
+        personnelContainer.appendChild(row);
+      });
+
+      document.querySelectorAll(".btn-valider").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+          const personnel = personnels[i];
+          document.getElementById("Id_personnel").value = personnel._id;
+          document.getElementById("Id_personnel_input").value = personnel._id;
+          document.getElementById("nom").value = personnel.Nom;
+          document.getElementById("prenom").value = personnel.Prenom;
+          listpersonnel.classList.remove("vue");
+          chargerSanctions(personnel._id, personnel.Nom + " " + personnel.Prenom);
+        });
+      });
+    }
+
+    function afficherPagination() {
+      const paginationContainer = document.getElementById("pagination");
+      paginationContainer.innerHTML = "";
+      const totalPages = Math.ceil(allPersonnels.length / rowsPerPage);
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.style.fontWeight = "bold";
+        btn.addEventListener("click", () => { currentPage = i; afficherPersonnels(); afficherPagination(); });
+        paginationContainer.appendChild(btn);
+      }
+    }
+
+    // Recherche
+    document.querySelector(".Recherche").addEventListener("input", (e) => {
+      const filtre = e.target.value.toLowerCase();
+      const personnelsFiltres = allPersonnels.filter(p =>
+        p.Nom.toLowerCase().includes(filtre) ||
+        p.Prenom.toLowerCase().includes(filtre) ||
+        (p.CIN && p.CIN.toLowerCase().includes(filtre))
+      );
+
+      personnelContainer.innerHTML = "";
+      personnelsFiltres.forEach((personnel, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${personnel.Nom}</td>
+                         <td>${personnel.Prenom}</td>
+                         <td>${personnel.CIN || "-"}</td>
+                         <td><button class="btn-valider">Voir sanctions</button></td>`;
+        personnelContainer.appendChild(row);
+      });
+
+      document.querySelectorAll(".btn-valider").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+          const personnel = personnelsFiltres[i];
+          document.getElementById("Id_personnel").value = personnel._id;
+          document.getElementById("Id_personnel_input").value = personnel._id;
+          document.getElementById("nom").value = personnel.Nom;
+          document.getElementById("prenom").value = personnel.Prenom;
+          listpersonnel.classList.remove("vue");
+          chargerSanctions(personnel._id, personnel.Nom + " " + personnel.Prenom);
+        });
+      });
+    });
+
+    function chargerSanctions(idpersonnel, nom) {
+      fetch(`${SANCTION_API}/personnel/${idpersonnel}/all`)
+        .then(res => res.json())
+        .then(data => {
+          const tableBody = document.getElementById("sanction_table");
+          const section = document.getElementById("sanction_section");
+          document.getElementById("nom_personnel_sanction").innerText = nom;
+          tableBody.innerHTML = "";
+
+          if (!Array.isArray(data) || data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4">Aucune sanction trouvée</td></tr>`;
+          } else {
+            data.forEach(s => {
+              const dateSanction = s.Date_emission ? new Date(s.Date_emission).toLocaleDateString("fr-FR") : "-";
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${dateSanction}</td>
+                <td>${s.Type_sanction}</td>
+                <td>${s.Motif}</td>
+                <td>
+                  <button class="action-btn btn-modif">✏️</button>
+                  <button class="action-btn btn-supp">🗑️</button>
+                </td>
+              `;
+              tableBody.appendChild(row);
+
+              row.querySelector(".btn-modif").addEventListener("click", () => {
+                const personnel = {
+                  _id: idpersonnel,
+                  Nom: document.getElementById("nom").value,
+                  Prenom: document.getElementById("prenom").value
+                };
+                localStorage.setItem("sanctionData", JSON.stringify({ personnel, sanction: s }));
+                window.location.href = "persosanctionmodification.html";
+              });
+
+              row.querySelector(".btn-supp").addEventListener("click", () => {
+                if (confirm("Voulez-vous vraiment supprimer cette sanction ?")) {
+                  fetch(`${SANCTION_API}/${s._id}`, { method: "DELETE" })
+                    .then(r => { if (r.ok) { alert("✅ Supprimé !"); chargerSanctions(idpersonnel, nom); } else alert("Erreur ❌"); })
+                    .catch(err => console.error("Erreur API delete :", err));
+                }
+              });
+            });
+          }
+
+          section.style.display = "block";
+        })
+        .catch(err => console.error("Erreur chargement sanctions :", err));
+    }
+
+    window.onload = chargerpersonnel;
+  </script>
+</body>
+</html>

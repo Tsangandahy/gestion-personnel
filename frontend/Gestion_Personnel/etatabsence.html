@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PersoManager</title>
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  
+  <!-- Font Awesome pour icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* body {
+      font-family: Arial, sans-serif;
+    }
+
+    .navbar {
+      background: #004466;
+      color: white;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-links ul {
+      list-style: none;
+      display: flex;
+      gap: 15px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-logout {
+      background-color: #e74c3c;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .date-filters {
+      margin: 20px;
+    }
+
+    .message {
+      color: red;
+      font-weight: bold;
+      margin: 10px;
+      display: none;
+    }
+
+    table {
+      width: 90%;
+      margin: auto;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    th {
+      background-color: #006699;
+      color: white;
+    }
+
+    td,
+    th {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+
+    #pagination {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #pagination button {
+      margin: 0 3px;
+      padding: 5px 10px;
+    }
+
+     /* Bouton Retour bleu */
+    .btn-retour {
+      background-color: #3498db;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .btn-retour:hover {
+      background-color: #2980b9;
+    } */
+  </style>
+</head>
+
+<body>
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>État récapitulatif Absences</h1>
+    </div>
+
+    <div class="nav-links">
+      <ul>
+       <!-- Retour transformé en bouton bleu -->
+          <li>
+            <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+              <i class="fa-solid fa-arrow-left"></i> Retour
+            </a>
+          </li>
+
+       <li >
+          <label>Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== Filtre date ===== -->
+  <div class="date-filters">
+    <label for="start_date">Date début :</label>
+    <input type="date" id="start_date">
+
+    <label for="end_date">Date fin :</label>
+    <input type="date" id="end_date">
+
+    <button id="btn_recap">Afficher le récapitulatif</button>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <!-- ===== Tableau récapitulatif ===== -->
+  <div id="contrats_section">
+    <table class="table_SF">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Total jours d'absence</th>
+        </tr>
+      </thead>
+      <tbody id="recap_table">
+        <tr>
+          <td colspan="3" style="text-align:center;">Veuillez entrer les dates</td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="pagination"></div>
+  </div>
+
+  <script>
+    // 🟢 Vérification utilisateur
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // 🟢 Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // 🟢 API URLs
+    const API_PERSONNELS = "http://localhost:5000/api/personnels";
+    const API_ABSENCES = "http://localhost:5000/api/absance";
+
+    const rowsPerPage = 10;
+    let allRecap = [];
+    let currentPage = 1;
+
+    document.getElementById("btn_recap").addEventListener("click", async () => {
+      const start = document.getElementById("start_date").value;
+      const end = document.getElementById("end_date").value;
+      const message = document.getElementById("message");
+
+      message.style.display = "none";
+
+      if (!start || !end) {
+        message.textContent = "⚠️ Veuillez sélectionner la date de début et de fin.";
+        message.style.display = "block";
+        return;
+      }
+
+      try {
+        const personnelsRes = await fetch(API_PERSONNELS);
+        if (!personnelsRes.ok) throw new Error("Erreur API personnels");
+        const personnels = await personnelsRes.json();
+
+        allRecap = [];
+
+        // 🟢 Parcours des personnels et calcul total
+        for (const p of personnels) {
+          try {
+            const absRes = await fetch(`${API_ABSENCES}/personnel/${p._id}?start=${start}&end=${end}`);
+            if (!absRes.ok) continue;
+            const absences = await absRes.json();
+
+            let total = 0;
+            if (Array.isArray(absences)) {
+              total = absences.reduce((sum, a) => sum + (a.nombre_jour || 0), 0);
+            }
+
+            allRecap.push({ Nom: p.Nom, Prenom: p.Prenom, Total: total });
+          } catch (e) {
+            console.warn("Erreur sur", p.Nom, e);
+          }
+        }
+
+        afficherPage(1);
+      } catch (err) {
+        console.error("Erreur principale :", err);
+        message.textContent = "❌ Impossible de récupérer les données. Vérifiez votre API.";
+        message.style.display = "block";
+      }
+    });
+
+    function afficherPage(page) {
+      const recapTable = document.getElementById("recap_table");
+      recapTable.innerHTML = "";
+
+      const startIndex = (page - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const pageItems = allRecap.slice(startIndex, endIndex);
+
+      if (pageItems.length === 0) {
+        recapTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">Aucun résultat trouvé</td></tr>`;
+        return;
+      }
+
+      pageItems.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${p.Nom}</td><td>${p.Prenom}</td><td>${p.Total}</td>`;
+        recapTable.appendChild(row);
+      });
+
+      afficherPagination();
+    }
+
+    function afficherPagination() {
+      const paginationContainer = document.getElementById("pagination");
+      paginationContainer.innerHTML = "";
+
+      const totalPages = Math.ceil(allRecap.length / rowsPerPage);
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.disabled = true;
+        btn.addEventListener("click", () => {
+          currentPage = i;
+          afficherPage(currentPage);
+        });
+        paginationContainer.appendChild(btn);
+      }
+    }
+  </script>
+</body>
+
+</html>

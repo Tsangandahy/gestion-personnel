@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <title>PersoManager</title>
+  <!-- Font Awesome pour l'icône -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>AJOUT ABSENCE</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <!-- Bouton Retour bleu avec icône -->
+        <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <li class="Util2">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+
+        <!-- Bouton Déconnexion rouge -->
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <header>
+    <div class="formulaire_saisie">
+      <form id="postForm" class="detail">
+        <div>
+          <table>
+            <tr>
+              <td>Nom</td>
+              <td>:</td>
+              <td><input type="text" id="nom" readonly></td>
+              <td><img src="../Image/image_personnel.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+            </tr>
+            <tr>
+              <td>Prénom</td>
+              <td>:</td>
+              <td><input type="text" id="prenom" readonly></td>
+            </tr>
+            <tr style="display: none;">
+              <td>ID Personnel</td>
+              <td>:</td>
+              <td><input type="text" id="Id_personnel_input" readonly></td>
+            </tr>
+            <tr>
+              <td>Date dépôt</td>
+              <td>:</td>
+              <td><input type="date" id="Date_depot"></td>
+            </tr>
+            <tr>
+              <td>Date départ</td>
+              <td>:</td>
+              <td><input type="date" id="Date_depart"></td>
+            </tr>
+            <tr>
+              <td>Date prise service</td>
+              <td>:</td>
+              <td><input type="date" id="Date_prise_service"></td>
+            </tr>
+            <tr>
+              <td>Nombre de jours</td>
+              <td>:</td>
+              <td>
+                <input type="number" id="nombre_jour" step="0.01" min="0" placeholder="ex: 1.5 ou 1,5">
+              </td>
+            </tr>
+            <tr>
+              <td>Type</td>
+              <td>:</td>
+              <td>
+                <select id="type_absance">
+                  <option value="">-- Sélectionner --</option>
+                  <option value="CONGE">CONGE</option>
+                  <option value="PERMISSION">PERMISSION</option>
+                  <option value="AUTRES">AUTRES</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>Motif</td>
+              <td>:</td>
+              <td><input type="text" id="motif_absance"></td>
+            </tr>
+          </table>
+          <button id="btn-submit" type="button" class="btn_valider">Valider</button>
+        </div>
+      </form>
+    </div>
+  </header>
+
+  <!-- Liste du personnel -->
+  <div class="list_personnel">
+    <input type="text" class="Recherche" placeholder="Rechercher...">
+    <button class="fermer_liste">X</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>CIN</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="personnel-contener"></tbody>
+    </table>
+    <div id="pagination"></div>
+  </div>
+
+  <input type="hidden" id="Id_personnel">
+  <input type="hidden" id="Id_personnel_contrat">
+
+  <script>
+    // 🔗 API
+    const API_URL = "http://localhost:5000/api/personnels";
+    const ABSENCE_API = "http://localhost:5000/api/absance";
+
+    // 🟢 Utilisateur connecté
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const spanNom = document.querySelector(".nom");
+
+    if (nomUtilisateur) spanNom.textContent = nomUtilisateur;
+    else window.location.href = "../index.html";
+
+    // 🟥 Bouton quitter
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // 🟢 Menu hamburger et liste personnel
+    const personnelContainer = document.getElementById("personnel-contener");
+    const listpersonnel = document.querySelector(".list_personnel");
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    const petitimage = document.querySelector(".petit_image");
+    const fermerliste = document.querySelector(".fermer_liste");
+
+    petitimage.addEventListener('click', () => listpersonnel.classList.toggle('vue'));
+    fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
+
+    // 🟢 Pagination et chargement
+    let currentPage = 1;
+    const rowsPerPage = 6;
+    let allPersonnels = [];
+
+    function chargerpersonnel() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          allPersonnels = data;
+          afficherPersonnels();
+          afficherPagination();
+        })
+        .catch(err => console.error(err));
+    }
+
+    function afficherPersonnels() {
+      personnelContainer.innerHTML = "";
+      if (!allPersonnels.length) {
+        personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
+        return;
+      }
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const personnels = allPersonnels.slice(start, end);
+
+      personnels.forEach((p, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${p.Nom}</td>
+          <td>${p.Prenom}</td>
+          <td>${p.CIN || ''}</td>
+          <td><button class="btn-valider"><<</button></td>
+        `;
+        personnelContainer.appendChild(row);
+      });
+
+      document.querySelectorAll(".btn-valider").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+          const p = allPersonnels[(currentPage - 1) * rowsPerPage + i];
+          document.getElementById("Id_personnel").value = p._id;
+          document.getElementById("Id_personnel_contrat").value = p._id;
+          document.getElementById("Id_personnel_input").value = p._id;
+          document.getElementById("nom").value = p.Nom;
+          document.getElementById("prenom").value = p.Prenom;
+          listpersonnel.classList.remove("vue");
+        });
+      });
+    }
+
+    function afficherPagination() {
+      const paginationContainer = document.getElementById("pagination");
+      paginationContainer.innerHTML = "";
+      const totalPages = Math.ceil(allPersonnels.length / rowsPerPage);
+
+      const prev = document.createElement("button");
+      prev.textContent = "◀";
+      prev.disabled = currentPage === 1;
+      prev.addEventListener("click", () => { currentPage--; afficherPersonnels(); afficherPagination(); });
+      paginationContainer.appendChild(prev);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.style.backgroundColor = "#ddd";
+        btn.addEventListener("click", () => { currentPage = i; afficherPersonnels(); afficherPagination(); });
+        paginationContainer.appendChild(btn);
+      }
+
+      const next = document.createElement("button");
+      next.textContent = "▶";
+      next.disabled = currentPage === totalPages;
+      next.addEventListener("click", () => { currentPage++; afficherPersonnels(); afficherPagination(); });
+      paginationContainer.appendChild(next);
+    }
+
+    // 🟢 Conversion virgule → point
+    const inputNombreJour = document.getElementById("nombre_jour");
+    inputNombreJour.addEventListener("input", function () {
+      this.value = this.value.replace(",", ".");
+    });
+
+    // 🟢 Enregistrement absence
+    document.getElementById("btn-submit").addEventListener("click", () => {
+      const idpersonnel = document.getElementById("Id_personnel_input").value;
+      const Date_depot = document.getElementById("Date_depot").value;
+      const Date_depart = document.getElementById("Date_depart").value;
+      const Date_prise_service = document.getElementById("Date_prise_service").value;
+      let nombre_jour = document.getElementById("nombre_jour").value.replace(",", ".");
+      const type_absance = document.getElementById("type_absance").value;
+      const motif_absance = document.getElementById("motif_absance").value;
+
+      if (!idpersonnel || !Date_depot || !Date_depart || !Date_prise_service || !nombre_jour || !type_absance || !motif_absance) {
+        alert("⚠️ Merci de remplir tous les champs !");
+        return;
+      }
+
+      nombre_jour = parseFloat(nombre_jour);
+
+      fetch(ABSENCE_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idpersonnel, Date_depot, Date_depart, Date_prise_service, nombre_jour, type_absance, motif_absance })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.message) alert("❌ Erreur : " + data.message);
+          else alert("✅ Absence enregistrée avec succès !");
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Erreur serveur ❌ Vérifie la console.");
+        });
+    });
+
+    window.onload = chargerpersonnel;
+  </script>
+</body>
+
+</html>

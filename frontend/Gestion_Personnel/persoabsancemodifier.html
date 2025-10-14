@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>PersoManager</title>
+
+  <style>
+    /* ✅ Bouton Retour bleu */
+    .btn-retour {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      text-decoration: none;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-retour i {
+      margin-right: 8px;
+    }
+
+    .btn-retour:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .navbar ul li {
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-logout {
+      background-color: #dc3545;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .btn-logout:hover {
+      background-color: #b02a37;
+    }
+
+    .menu_humberger {
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .menu_humberger {
+        display: block;
+      }
+
+      .nav-links ul {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>Modifier Absence</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <!-- ✅ Bouton Retour remplacé par icône bleue -->
+        <li>
+          <a href="persoabsanceparperso.html" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+      <li class="Util2">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+
+        <!-- Bouton Déconnexion rouge -->
+        <li>
+          <a href="#" id="btn_quitter" class="btn-logout">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </a>
+        </li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <header>
+    <div class="formulaire_saisie">
+      <form id="postForm" class="detail">
+        <div>
+          <table>
+            <tr style="display: none;">
+              <td><label for="idpersonnel">Sélectionner le personnel</label></td>
+              <td>:</td>
+              <td>
+                <select id="idpersonnel" required>
+                  <option value="">-- Choisir --</option>
+                </select>
+              </td>
+            </tr>
+
+            <tr>
+              <td><label for="nom_personnel">Nom</label></td>
+              <td>:</td>
+              <td><input type="text" id="nom_personnel" readonly></td>
+            </tr>
+
+            <tr>
+              <td><label for="prenom_personnel">Prénom</label></td>
+              <td>:</td>
+              <td><input type="text" id="prenom_personnel" readonly></td>
+            </tr>
+
+            <tr>
+              <td><label>Date dépôt</label></td>
+              <td>:</td>
+              <td><input type="date" id="date_depot" required></td>
+            </tr>
+
+            <tr>
+              <td><label>Date départ</label></td>
+              <td>:</td>
+              <td><input type="date" id="date_depart" required></td>
+            </tr>
+
+            <tr>
+              <td><label>Date reprise</label></td>
+              <td>:</td>
+              <td><input type="date" id="date_prise_service" required></td>
+            </tr>
+
+            <tr>
+              <td><label>Nombre de jours</label></td>
+              <td>:</td>
+              <td><input type="number" id="nombre_jour" min="0" step="0.01" inputmode="decimal" required></td>
+            </tr>
+
+            <tr>
+              <td><label>Type d'absence</label></td>
+              <td>:</td>
+              <td>
+                <select id="type_absance" required>
+                  <option value="CONGE">CONGE</option>
+                  <option value="PERMISSION">PERMISSION</option>
+                  <option value="AUTRES">AUTRES</option>
+                </select>
+              </td>
+            </tr>
+
+            <tr>
+              <td><label>Motif</label></td>
+              <td>:</td>
+              <td><textarea id="motif_absance" rows="3"></textarea></td>
+            </tr>
+          </table>
+          <button type="submit" class="btn_valider">Enregistrer</button>
+        </div>
+        <input type="hidden" id="Id_personnel_input">
+      </form>
+    </div>
+  </header>
+
+  <script>
+    const ABS_API = "http://localhost:5000/api/absance";
+    const PERSONNEL_API = "http://localhost:5000/api/personnels";
+
+    // 🔹 Afficher nom utilisateur
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+    }
+
+    // 🔹 Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // 🔹 Charger les personnels
+    function chargerPersonnels(absenceData = null) {
+      fetch(PERSONNEL_API)
+        .then(res => res.json())
+        .then(personnels => {
+          const select = document.getElementById("idpersonnel");
+          select.innerHTML = '<option value="">-- Choisir --</option>';
+
+          personnels.forEach(p => {
+            const option = document.createElement("option");
+            option.value = p._id;
+            option.textContent = `${p.Nom} ${p.Prenom}`;
+            option.dataset.nom = p.Nom || "";
+            option.dataset.prenom = p.Prenom || "";
+
+            if (absenceData && String(absenceData.idpersonnel) === String(p._id)) {
+              option.selected = true;
+              document.getElementById("nom_personnel").value = p.Nom || "";
+              document.getElementById("prenom_personnel").value = p.Prenom || "";
+              document.getElementById("Id_personnel_input").value = p._id;
+            }
+
+            select.appendChild(option);
+          });
+        })
+        .catch(err => console.error("Erreur personnels :", err));
+    }
+
+    // 🔹 Changement personnel
+    document.getElementById("idpersonnel").addEventListener("change", function () {
+      const opt = this.options[this.selectedIndex];
+      if (opt && opt.value) {
+        document.getElementById("nom_personnel").value = opt.dataset.nom || "";
+        document.getElementById("prenom_personnel").value = opt.dataset.prenom || "";
+        document.getElementById("Id_personnel_input").value = opt.value;
+      } else {
+        document.getElementById("nom_personnel").value = "";
+        document.getElementById("prenom_personnel").value = "";
+        document.getElementById("Id_personnel_input").value = "";
+      }
+    });
+
+    // ✅ Remplacer virgule par point dans "nombre_jour"
+    const inputNombre = document.getElementById("nombre_jour");
+    inputNombre.addEventListener("input", function () {
+      this.value = this.value.replace(",", ".");
+    });
+
+    // 🔹 Pré-remplissage pour modification
+    document.addEventListener("DOMContentLoaded", () => {
+      const storedAbsence = localStorage.getItem("absenceData");
+      if (!storedAbsence) {
+        alert("❌ Aucune absence à modifier !");
+        window.location.href = "liste_absence.html";
+        return;
+      }
+
+      const data = JSON.parse(storedAbsence);
+
+      document.getElementById("date_depot").value = data.Date_depot ? data.Date_depot.split("T")[0] : "";
+      document.getElementById("date_depart").value = data.Date_depart ? data.Date_depart.split("T")[0] : "";
+      document.getElementById("date_prise_service").value = data.Date_prise_service ? data.Date_prise_service.split("T")[0] : "";
+      document.getElementById("nombre_jour").value = data.nombre_jour || "";
+      document.getElementById("type_absance").value = data.type_absance || "AUTRES";
+      document.getElementById("motif_absance").value = data.motif_absance || "";
+
+      chargerPersonnels(data);
+
+      // 🔹 Soumission du formulaire (PUT)
+      document.getElementById("postForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        let nbJour = document.getElementById("nombre_jour").value.replace(",", ".");
+        nbJour = parseFloat(nbJour);
+
+        const absenceUpdate = {
+          idpersonnel: document.getElementById("Id_personnel_input").value,
+          Date_depot: document.getElementById("date_depot").value,
+          Date_depart: document.getElementById("date_depart").value,
+          Date_prise_service: document.getElementById("date_prise_service").value,
+          nombre_jour: nbJour,
+          type_absance: document.getElementById("type_absance").value,
+          motif_absance: document.getElementById("motif_absance").value
+        };
+
+        if (!absenceUpdate.idpersonnel) {
+          alert("Sélectionne un personnel.");
+          return;
+        }
+
+        fetch(`${ABS_API}/${data._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(absenceUpdate)
+        })
+          .then(res => {
+            if (res.ok) {
+              alert("✅ Absence modifiée !");
+              localStorage.removeItem("absenceData");
+              window.location.href = "liste_absence.html";
+            } else {
+              alert("❌ Erreur lors de la modification");
+            }
+          })
+          .catch(err => {
+            console.error("Erreur update :", err);
+            alert("Erreur réseau / serveur");
+          });
+      });
+    });
+  </script>
+</body>
+
+</html>

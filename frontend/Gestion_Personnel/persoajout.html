@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>PersoManager</title>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>AJOUT PERSONNEL</h1>
+    </div>
+
+    <div class="nav-links">
+      <ul>
+        <li>
+          <!-- Bouton retour -->
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- Affichage du nom et rôle -->
+   <!-- Nom et rôle utilisateur -->
+          <li class="util">
+            <label style="color: white;">Utilisateur :</label>
+            <span class="user-info">
+              <span class="nom">---</span>
+              <span class="role">(---)</span>
+            </span>
+          </li>
+
+        <li>
+          <!-- Bouton Déconnexion -->
+          <a href="#" id="btn_quitter" class="btn-logout">
+            <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+<header>
+  <div class="formulaire_saisie">
+      <form id="postForm" class="detail">
+                <div>
+                    <table>
+                        <tr>
+                            <td>Nom</td>
+                            <td><input type="text" id="Nom" required></td>
+                        </tr>
+                        <tr>
+                            <td>Prénom</td>
+                            <td><input type="text" id="Prenom" required></td>
+                        </tr>
+                        <tr>
+                            <td>CIN</td>
+                            <td><input type="text" id="CIN" required></td>
+                        </tr>
+                        <tr>
+                            <td>Date de naissance</td>
+                            <td><input type="date" id="Date_naissance"></td>
+                        </tr>
+                        <tr>
+                            <td>Sexe</td>
+                            <td>
+                                <select id="Sexe">
+                                    <option value="Homme">Homme</option>
+                                    <option value="Femme">Femme</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Adresse</td>
+                            <td><input type="text" id="Adresse"></td>
+                        </tr>
+                        <tr>
+                            <td>Téléphone</td>
+                            <td><input type="text" id="Telephone"></td>
+                        </tr>
+                        <tr>
+                            <td>Photo</td>
+                            <td>
+                                <input type="file" name="photo" accept="image/*" id="imageInput" style="width: 150px;">
+                                <img id="imagePreview" style="display:none;">
+                            </td>
+                        </tr>
+                    </table>
+                      <button type="submit" class="btn_valider">Valider</button>
+                </div>
+            </form>
+        </div>
+    </header>
+    <script>
+        const menuhumberger = document.querySelector(".menu_humberger")
+        const navlinks = document.querySelector(".nav-links")
+
+        menuhumberger.addEventListener('click', () => {
+            navlinks.classList.toggle('mobile-menu');
+        })
+
+        // ----------- Prévisualisation de l'image ---------
+        const imageInput = document.getElementById("imageInput");
+        const imagePreview = document.getElementById("imagePreview");
+
+        imageInput.addEventListener("change", () => {
+            const file = imageInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = "block";
+                    imagePreview.style.width = "250px";   // largeur fixe (modifiable)
+                    imagePreview.style.height = "auto";   // hauteur auto
+                    imagePreview.style.marginTop = "10px";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        const postForm = document.getElementById("postForm");
+        postForm.addEventListener("submit", e => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("Nom", document.getElementById("Nom").value);
+            formData.append("Prenom", document.getElementById("Prenom").value);
+            formData.append("CIN", document.getElementById("CIN").value);
+            formData.append("Date_naissence", document.getElementById("Date_naissance").value); // respecter le modèle
+            formData.append("sexe", document.getElementById("Sexe").value);
+            formData.append("Adresse", document.getElementById("Adresse").value);
+            // formData.append("Telephone", document.getElementById("Telephone").value); // enlever si pas dans le modèle
+            formData.append("Photo", document.getElementById("imageInput").files[0]); // respecter le modèle
+            fetch("http://localhost:5000/api/personnels", {
+                method: "POST",
+                body: formData
+            })
+                .then(res => res.json())
+                .then(() => {
+                    postForm.reset();
+                    alert("Personnel ajouté !");
+                })
+                .catch(err => console.error("Erreur :", err));
+        });
+
+
+        // Afficher nom et rôle utilisateur depuis localStorage
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      // Affiche le rôle avec première lettre majuscule
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
+    } else {
+      // Redirection si non connecté
+      window.location.href = "../index.html";
+    }
+
+
+    
+    </script>
+</body>
+
+</html>

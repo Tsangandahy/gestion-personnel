@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <title>PersoManager</title>
+
+  <!-- Font Awesome pour icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    #pagination_absences {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    #pagination_absences button {
+      margin: 3px;
+      padding: 5px 10px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background-color: #f5f5f5;
+    }
+
+    #pagination_absences button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Style pour le résumé total */
+    #totals_par_type {
+      font-size: 13px;
+      margin-left: 20px;
+      margin-top: 10px;
+      padding: 10px;
+      width: fit-content;
+    }
+
+    #totals_par_type table {
+      border-collapse: collapse;
+      width: 100%;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #totals_par_type th,
+    #totals_par_type td {
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      text-align: center;
+    }
+
+    #totals_par_type th {
+      background-color: #eaf3ff;
+      color: #333;
+    }
+
+    #totals_par_type tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    #totals_par_type tfoot td {
+      font-weight: bold;
+      background-color: #f2f2f2;
+    }
+
+    /* Boutons action dans tableau absences */
+    .action-icon {
+      font-size: 16px;
+      cursor: pointer;
+      margin: 0 5px;
+      transition: transform 0.2s;
+    }
+
+    .action-icon:hover {
+      transform: scale(1.2);
+    }
+
+    .edit-icon {
+      color: #3498db;
+    }
+
+    .delete-icon {
+      color: #e74c3c;
+    }
+
+
+
+    .btn-selection:hover {
+      background-color: #27ae60;
+    }
+     /* Bouton Retour bleu */
+    .btn-retour {
+      background-color: #3498db;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .btn-retour:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>ETAT ABSENCES</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+  <li>
+            <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+              <i class="fa-solid fa-arrow-left"></i> Retour
+            </a>
+          </li>
+          <li class="Util2">
+          <label style="color:white;">Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <header>
+    <div class="contrat_header">
+      <div style="width: 100%;">
+        <table class="tableau_en_tete">
+          <tr>
+            <td>Nom</td>
+            <td>:</td>
+            <td><input type="text" id="nom" readonly></td>
+            <td><img src="../Image/image_personnel.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+          </tr>
+          <tr>
+            <td>Prénom</td>
+            <td>:</td>
+            <td><input type="text" id="prenom" readonly></td>
+          </tr>
+          <tr style="display: none;">
+            <td>ID Personnel</td>
+            <td>:</td>
+            <td><input type="text" id="Id_personnel_input" readonly></td>
+          </tr>
+          <tr>
+            <td>Période</td>
+            <td>:</td>
+            <td>
+              <input type="date" id="date_debut" style="width: 145px;"> -
+              <input type="date" id="date_fin" style="width: 145px;">
+              <button id="btn-filtrer" type="button">Filtrer</button>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Liste des absences -->
+        <div id="absences_section" style="margin:20px 0; display:block; width:100%;">
+          <h3 style="display: none;">Absences de <span id="nom_personnel_absence"></span></h3>
+          <table class="table_SF" border="1" cellpadding="1">
+            <thead>
+              <tr>
+                <th>Date Dépôt</th>
+                <th>Date Départ</th>
+                <th>Date Prise Service</th>
+                <th>Nombre de jours</th>
+                <th>Type</th>
+                <th>Motif</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="absences_table">
+              <tr>
+                <td colspan="7">Sélectionnez un personnel</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination absences -->
+          <div id="pagination_absences"></div>
+
+          <p style="margin-left: 20px; margin-top: 10px; display: none;">
+            Total jours d'absence : <span id="total_absences">0</span>
+          </p>
+
+          <!-- Tableau récapitulatif -->
+          <div id="totals_par_type"></div>
+        </div>
+      </div>
+  </header>
+
+  <!-- Liste personnel -->
+  <div class="list_personnel">
+    <input type="text" class="Recherche" placeholder="Rechercher...">
+    <button class="fermer_liste">X</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="personnel-contener"></tbody>
+    </table>
+    <div id="pagination"></div>
+  </div>
+
+  <input type="hidden" id="Id_personnel">
+
+  <script>
+    // Menu hamburger
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
+
+    // Liste personnel
+    const petitimage = document.querySelector(".petit_image");
+    const listpersonnel = document.querySelector(".list_personnel");
+    const fermerliste = document.querySelector(".fermer_liste");
+
+    petitimage.addEventListener('click', () => {
+      listpersonnel.classList.toggle('vue');
+      document.getElementById("absences_table").innerHTML = "";
+      document.getElementById("total_absences").innerText = 0;
+      document.getElementById("totals_par_type").innerHTML = "";
+      document.getElementById("nom_personnel_absence").innerText = "";
+    });
+
+    fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
+
+    // Utilisateur connecté
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // API
+    const API_URL = "http://localhost:5000/api/personnels";
+    const ABS_API = "http://localhost:5000/api/absance";
+
+    const personnelContainer = document.getElementById("personnel-contener");
+    let allPersonnels = [];
+    let allAbsences = [];
+    let currentPagePersonnel = 1;
+    let currentPageAbsence = 1;
+    const rowsPerPagePersonnel = 6;
+    const rowsPerPageAbsence = 5;
+
+    function chargerpersonnel() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          allPersonnels = data;
+          afficherPersonnels();
+          afficherPaginationPersonnel();
+        })
+        .catch(err => console.error("Erreur API personnels :", err));
+    }
+
+    function afficherPersonnels() {
+      personnelContainer.innerHTML = "";
+      let start = (currentPagePersonnel - 1) * rowsPerPagePersonnel;
+      let end = start + rowsPerPagePersonnel;
+      let personnels = allPersonnels.slice(start, end);
+
+      personnels.forEach(personnel => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${personnel.Nom}</td>
+          <td>${personnel.Prenom}</td>
+          <td style="text-align:center;">
+            <button class="btn-valider"><<</button>
+          </td>
+        `;
+        personnelContainer.appendChild(row);
+
+        row.querySelector(".btn-valider").addEventListener("click", () => {
+          document.getElementById("Id_personnel").value = personnel._id;
+          document.getElementById("Id_personnel_input").value = personnel._id;
+          document.getElementById("nom").value = personnel.Nom;
+          document.getElementById("prenom").value = personnel.Prenom;
+          listpersonnel.classList.remove("vue");
+          document.getElementById("absences_section").style.display = "block";
+        });
+      });
+    }
+
+    function afficherPaginationPersonnel() {
+      const paginationContainer = document.getElementById("pagination");
+      paginationContainer.innerHTML = "";
+      const totalPages = Math.ceil(allPersonnels.length / rowsPerPagePersonnel);
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPagePersonnel) btn.disabled = true;
+        btn.addEventListener("click", () => {
+          currentPagePersonnel = i;
+          afficherPersonnels();
+          afficherPaginationPersonnel();
+        });
+        paginationContainer.appendChild(btn);
+      }
+    }
+
+    // Filtrer absences
+    document.getElementById("btn-filtrer").addEventListener("click", () => {
+      const id = document.getElementById("Id_personnel").value;
+      const start = document.getElementById("date_debut").value;
+      const end = document.getElementById("date_fin").value;
+
+      if (!id || !start || !end) {
+        alert("Sélectionne un personnel et choisis une période !");
+        return;
+      }
+
+      fetch(`${ABS_API}/personnel/${id}?start=${start}&end=${end}`)
+        .then(res => res.json())
+        .then(data => {
+          allAbsences = Array.isArray(data) ? data : [];
+          currentPageAbsence = 1;
+          afficherAbsences();
+          afficherPaginationAbsences();
+        })
+        .catch(err => console.error("Erreur API absences :", err));
+    });
+
+    function afficherAbsences() {
+      const tableBody = document.getElementById("absences_table");
+      tableBody.innerHTML = "";
+
+      let start = (currentPageAbsence - 1) * rowsPerPageAbsence;
+      let end = start + rowsPerPageAbsence;
+      let absencesPage = allAbsences.slice(start, end);
+
+      if (absencesPage.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7">Aucune absence trouvée</td></tr>`;
+      } else {
+        absencesPage.forEach(abs => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${abs.Date_depot ? new Date(abs.Date_depot).toLocaleDateString() : "-"}</td>
+            <td>${abs.Date_depart ? new Date(abs.Date_depart).toLocaleDateString() : "-"}</td>
+            <td>${abs.Date_prise_service ? new Date(abs.Date_prise_service).toLocaleDateString() : "-"}</td>
+            <td>${abs.nombre_jour || "-"}</td>
+            <td>${abs.type_absance || "-"}</td>
+            <td>${abs.motif_absance || "-"}</td>
+            <td style="text-align:center;">
+              <i class="fa-solid fa-pen-to-square action-icon edit-icon" title="Modifier" onclick='modifierAbsence(${JSON.stringify(abs)})'></i>
+              <i class="fa-solid fa-trash action-icon delete-icon" title="Supprimer" onclick="supprimerAbsence('${abs._id}')"></i>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      // Totaux
+      let totalJours = 0;
+      let totalParType = {};
+      allAbsences.forEach(abs => {
+        totalJours += abs.nombre_jour || 0;
+        const type = abs.type_absance || "AUTRES";
+        totalParType[type] = (totalParType[type] || 0) + (abs.nombre_jour || 0);
+      });
+
+      document.getElementById("total_absences").innerText = totalJours;
+
+      const totalsContainer = document.getElementById("totals_par_type");
+      if (Object.keys(totalParType).length === 0) {
+        totalsContainer.innerHTML = "<p>Aucune absence pour cette période.</p>";
+        return;
+      }
+
+      let html = `
+        <h4>Détails par type d'absence :</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Type d'absence</th>
+              <th>Total de jours</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for (const [type, total] of Object.entries(totalParType)) {
+        html += `<tr><td>${type}</td><td>${total}</td></tr>`;
+      }
+
+      html += `<tfoot><tr><td>Total général</td><td>${totalJours}</td></tr></tfoot></table>`;
+      totalsContainer.innerHTML = html;
+    }
+
+    function afficherPaginationAbsences() {
+      const paginationContainer = document.getElementById("pagination_absences");
+      paginationContainer.innerHTML = "";
+      const totalPages = Math.ceil(allAbsences.length / rowsPerPageAbsence);
+      if (totalPages <= 1) return;
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPageAbsence) btn.disabled = true;
+        btn.addEventListener("click", () => {
+          currentPageAbsence = i;
+          afficherAbsences();
+          afficherPaginationAbsences();
+        });
+        paginationContainer.appendChild(btn);
+      }
+    }
+
+    function supprimerAbsence(id) {
+      if (confirm("Voulez-vous vraiment supprimer cette absence ?")) {
+        fetch(`${ABS_API}/${id}`, { method: "DELETE" })
+          .then(res => {
+            if (res.ok) {
+              alert("Absence supprimée !");
+              document.getElementById("btn-filtrer").click();
+            } else alert("Erreur lors de la suppression");
+          })
+          .catch(err => console.error("Erreur suppression :", err));
+      }
+    }
+
+    function modifierAbsence(absence) {
+      localStorage.setItem("absenceData", JSON.stringify(absence));
+      window.location.href = "persoabsancemodifier.html";
+    }
+
+    window.onload = chargerpersonnel;
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <title>PersoManager</title>
+  <!-- Font Awesome pour icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .nom-utilisateur {
+      color: yellow;
+      font-weight: bold;
+      background-color: #333;
+      border-radius: 5px;
+      padding: 4px 8px;
+      margin-left: 10px;
+    }
+
+    /* Bouton Retour bleu avec icône */
+    .btn-retour {
+      background-color: #3498db;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .btn-retour:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <h1>Ajout Contrat</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+                <!-- Retour transformé en bouton bleu -->
+          <li>
+            <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+              <i class="fa-solid fa-arrow-left"></i> Retour
+            </a>
+          </li>
+
+       <li class="Util2">
+          <span style="color:white;">Utilisateur :</span>
+          <span class="nom-utilisateur">---</span>
+        </li>
+
+        <!-- Bouton Déconnexion rouge -->
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <header>
+    <div class="formulaire_saisie">
+      <form id="postForm" class="detail">
+        <div>
+          <table>
+            <tr>
+              <td>Nom</td>
+              <td>:</td>
+              <td><input type="text" id="nom" readonly></td>
+              <td>
+                <div class="btn_liste_perso">
+                  <img src="../Image/image_personnel.jpg" class="petit_image">
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Prénom</td>
+              <td>:</td>
+              <td><input type="text" id="prenom" readonly></td>
+            </tr>
+            <tr style="display: none;">
+              <td>ID Personnel</td>
+              <td>:</td>
+              <td><input type="text" id="Id_personnel_input" readonly></td>
+            </tr>
+            <tr>
+              <td>Date du contrat</td>
+              <td>:</td>
+              <td><input type="date" id="Date_contrat"></td>
+            </tr>
+            <tr>
+              <td>Début du contrat</td>
+              <td>:</td>
+              <td><input type="date" id="Debut_contrat"></td>
+            </tr>
+            <tr>
+              <td>Fin du contrat</td>
+              <td>:</td>
+              <td><input type="date" id="Fin_contrat"></td>
+            </tr>
+            <tr>
+              <td>Durée</td>
+              <td>:</td>
+              <td><input type="number" id="Duree"></td>
+            </tr>
+            <tr>
+              <td>Type du contrat</td>
+              <td>:</td>
+              <td>
+                <select id="Type_contrat">
+                  <option value="">-- Sélectionner --</option>
+                  <option value="essai">Essai</option>
+                  <option value="cdd">CDD</option>
+                  <option value="cdi">CDI</option>
+                  <option value="prestateur">Prestateur</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>Fonction</td>
+              <td>:</td>
+              <td><input type="text" id="Fonction"></td>
+            </tr>
+            <tr>
+              <td>Lieu d'affectation</td>
+              <td>:</td>
+              <td><input type="text" id="Lieu_affectation"></td>
+            </tr>
+          </table>
+        </div>
+        <button id="btn-submit" class="btn_valider">Valider</button>
+      </form>
+    </div>
+  </header>
+
+  <!-- Liste personnel -->
+  <div class="list_personnel">
+    <input type="text" class="Recherche" placeholder="Rechercher...">
+    <button class="fermer_liste">X</button>
+    <div>
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>CIN</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="personnel-contener"></tbody>
+      </table>
+    </div>
+    <div id="pagination"></div>
+  </div>
+
+  <!-- champs cachés -->
+  <input type="hidden" id="Id_personnel">
+  <input type="hidden" id="Id_personnel_contrat">
+
+  <script>
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+
+    if (nomUtilisateur) {
+      document.querySelector(".nom-utilisateur").textContent = nomUtilisateur;
+    } else {
+      alert("⚠️ Vous devez vous connecter !");
+      window.location.href = "../index.html";
+    }
+
+    document.getElementById("btn_quitter").addEventListener("click", () => {
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => {
+      navlinks.classList.toggle('mobile-menu');
+    });
+
+    const API_URL = "http://localhost:5000/api/personnels";
+    const CONTRAT_API = "http://localhost:5000/api/contrats";
+    const personnelContainer = document.getElementById("personnel-contener");
+    const listpersonnel = document.querySelector(".list_personnel");
+    const petitimage = document.querySelector(".petit_image");
+    const fermerliste = document.querySelector(".fermer_liste");
+
+    petitimage.addEventListener('click', () => listpersonnel.classList.toggle('vue'));
+    fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
+
+    let currentPage = 1;
+    const rowsPerPage = 6;
+    let allPersonnels = [];
+
+    function chargerpersonnel() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          allPersonnels = data;
+          afficherPersonnels();
+          afficherPagination();
+        })
+        .catch(err => console.error("Erreur API :", err));
+    }
+
+    function afficherPersonnels() {
+      personnelContainer.innerHTML = "";
+      if (allPersonnels.length === 0) {
+        personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
+        return;
+      }
+      let start = (currentPage - 1) * rowsPerPage;
+      let end = start + rowsPerPage;
+      let personnels = allPersonnels.slice(start, end);
+
+      personnels.forEach((personnel, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${personnel.Nom}</td>
+          <td>${personnel.Prenom}</td>
+          <td>${personnel.CIN || ""}</td>
+          <td><button class="btn-valider"><<</button></td>
+        `;
+        personnelContainer.appendChild(row);
+      });
+
+      document.querySelectorAll(".btn-valider").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+          let personnel = allPersonnels[(currentPage - 1) * rowsPerPage + i];
+          document.getElementById("Id_personnel").value = personnel._id;
+          document.getElementById("Id_personnel_contrat").value = personnel._id;
+          document.getElementById("Id_personnel_input").value = personnel._id;
+          document.getElementById("nom").value = personnel.Nom;
+          document.getElementById("prenom").value = personnel.Prenom;
+          listpersonnel.classList.remove("vue");
+        });
+      });
+    }
+
+    function afficherPagination() {
+      const paginationContainer = document.getElementById("pagination");
+      paginationContainer.innerHTML = "";
+
+      const totalPages = Math.ceil(allPersonnels.length / rowsPerPage);
+
+      const prev = document.createElement("button");
+      prev.textContent = "◀";
+      prev.disabled = currentPage === 1;
+      prev.addEventListener("click", () => {
+        currentPage--;
+        afficherPersonnels();
+        afficherPagination();
+      });
+      paginationContainer.appendChild(prev);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) {
+          btn.style.fontWeight = "bold";
+          btn.style.backgroundColor = "#ddd";
+        }
+        btn.addEventListener("click", () => {
+          currentPage = i;
+          afficherPersonnels();
+          afficherPagination();
+        });
+        paginationContainer.appendChild(btn);
+      }
+
+      const next = document.createElement("button");
+      next.textContent = "▶";
+      next.disabled = currentPage === totalPages;
+      next.addEventListener("click", () => {
+        currentPage++;
+        afficherPersonnels();
+        afficherPagination();
+      });
+      paginationContainer.appendChild(next);
+    }
+
+    const rechercheInput = document.querySelector(".Recherche");
+    rechercheInput.addEventListener("input", () => {
+      const recherche = rechercheInput.value.toLowerCase();
+      const personnelsFiltres = allPersonnels.filter(personnel =>
+        personnel.Nom.toLowerCase().includes(recherche) ||
+        personnel.Prenom.toLowerCase().includes(recherche) ||
+        (personnel.CIN && personnel.CIN.toLowerCase().includes(recherche))
+      );
+      afficherPersonnelsFiltrees(personnelsFiltres);
+    });
+
+    function afficherPersonnelsFiltrees(personnelsFiltres) {
+      personnelContainer.innerHTML = "";
+      if (personnelsFiltres.length === 0) {
+        personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
+        return;
+      }
+
+      personnelsFiltres.forEach((personnel, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${personnel.Nom}</td>
+          <td>${personnel.Prenom}</td>
+          <td>${personnel.CIN || ""}</td>
+          <td><button class="btn-valider"><<</button></td>
+        `;
+        personnelContainer.appendChild(row);
+      });
+
+      document.querySelectorAll(".btn-valider").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+          const personnel = personnelsFiltres[i];
+          document.getElementById("Id_personnel").value = personnel._id;
+          document.getElementById("Id_personnel_contrat").value = personnel._id;
+          document.getElementById("Id_personnel_input").value = personnel._id;
+          document.getElementById("nom").value = personnel.Nom;
+          document.getElementById("prenom").value = personnel.Prenom;
+          listpersonnel.classList.remove("vue");
+        });
+      });
+    }
+
+    document.getElementById("btn-submit").addEventListener("click", (e) => {
+      e.preventDefault();
+      const idpersonnel = document.getElementById("Id_personnel_input").value;
+      const Type_contrat = document.getElementById("Type_contrat").value;
+      const Date_contrat = document.getElementById("Date_contrat").value;
+      const Debut_contrat = document.getElementById("Debut_contrat").value;
+      const Fin_contrat = document.getElementById("Fin_contrat").value;
+      const Fonction = document.getElementById("Fonction").value;
+      const Lieu_affectation = document.getElementById("Lieu_affectation").value;
+
+      if (!idpersonnel || !Type_contrat || !Date_contrat || !Debut_contrat || !Fin_contrat || !Fonction || !Lieu_affectation) {
+        alert("⚠️ Merci de remplir tous les champs obligatoires !");
+        return;
+      }
+
+      const contratData = { idpersonnel, Type_contrat, Date_contrat, Debut_contrat, Fin_contrat, Fonction, Lieu_affectation };
+
+      fetch(CONTRAT_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contratData)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.message) {
+            alert("❌ Erreur : " + data.message);
+          } else {
+            alert("✅ Contrat enregistré avec succès !");
+          }
+        })
+        .catch(err => {
+          console.error("Erreur :", err);
+          alert("❌ Erreur serveur !");
+        });
+    });
+
+    window.onload = chargerpersonnel;
+  </script>
+
+</body>
+</html>

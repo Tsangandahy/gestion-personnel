@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>PersoManager</title>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>MODIFIER PERSONNEL</h1>
+    </div>
+
+    <div class="nav-links">
+      <ul>
+        <li>
+          <!-- Bouton retour -->
+          <a href="Listepersonnel.html" class="btn-retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- Nom et rôle utilisateur -->
+        <li class="util">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+
+        <li>
+          <!-- Bouton Déconnexion -->
+          <a href="#" id="btn_quitter" class="btn-logout">
+            <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <header>
+    <div class="formulaire_saisie">
+      <form id="editForm">
+        <table>
+          <tr>
+            <td>Nom</td>
+            <td><input type="text" id="Nom" required></td>
+          </tr>
+          <tr>
+            <td>Prénom</td>
+            <td><input type="text" id="Prenom" required></td>
+          </tr>
+          <tr>
+            <td>CIN</td>
+            <td><input type="text" id="CIN" required readonly></td>
+          </tr>
+          <tr>
+            <td>Date de naissance</td>
+            <td><input type="date" id="Date_naissance"></td>
+          </tr>
+          <tr>
+            <td>Sexe</td>
+            <td>
+              <select id="Sexe">
+                <option value="Homme">Homme</option>
+                <option value="Femme">Femme</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>Adresse</td>
+            <td><input type="text" id="Adresse"></td>
+          </tr>
+          <tr>
+            <td>Téléphone</td>
+            <td><input type="text" id="Telephone"></td>
+          </tr>
+          <tr>
+            <td>Photo</td>
+            <td>
+              <input type="file" name="photo" accept="image/*" id="imageInput">
+              <img id="imagePreview" style="display:none; margin-top:10px; width:200px;">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <button type="submit">💾 Enregistrer</button>
+            </td>
+          </tr>
+        </table>
+      </form>
+    </div>
+  </header>
+
+  <script>
+    const API_URL = "http://localhost:5000/api/personnels";
+
+    // Récupérer l'ID depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const personnelId = urlParams.get("id");
+
+    // Prévisualisation de l'image
+    const imageInput = document.getElementById("imageInput");
+    const imagePreview = document.getElementById("imagePreview");
+    imageInput.addEventListener("change", () => {
+      const file = imageInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          imagePreview.src = e.target.result;
+          imagePreview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Charger les infos du personnel
+    async function chargerPersonnel() {
+      try {
+        const res = await fetch(`${API_URL}/${personnelId}`);
+        if (!res.ok) throw new Error("Personnel introuvable");
+        const data = await res.json();
+
+        document.getElementById("Nom").value = data.Nom || "";
+        document.getElementById("Prenom").value = data.Prenom || "";
+        document.getElementById("CIN").value = data.CIN || "";
+        document.getElementById("Date_naissance").value = data.Date_naissence ? data.Date_naissence.split("T")[0] : "";
+        document.getElementById("Sexe").value = data.sexe || "Homme";
+        document.getElementById("Adresse").value = data.Adresse || "";
+        document.getElementById("Telephone").value = data.Telephone || "";
+
+        if (data.Photo) {
+          // Vérifie si le chemin contient déjà "uploads"
+          imagePreview.src = data.Photo.includes("uploads") ? `http://localhost:5000/${data.Photo}` : `http://localhost:5000/uploads/${data.Photo}`;
+          imagePreview.style.display = "block";
+        }
+      } catch (err) {
+        alert("Erreur lors du chargement du personnel !");
+        console.error(err);
+      }
+    }
+
+    // Mettre à jour le personnel et rediriger
+    const editForm = document.getElementById("editForm");
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append("Nom", document.getElementById("Nom").value);
+      formData.append("Prenom", document.getElementById("Prenom").value);
+      formData.append("CIN", document.getElementById("CIN").value);
+      formData.append("Date_naissence", document.getElementById("Date_naissance").value);
+      formData.append("sexe", document.getElementById("Sexe").value);
+      formData.append("Adresse", document.getElementById("Adresse").value);
+      formData.append("Telephone", document.getElementById("Telephone").value);
+      if (imageInput.files[0]) formData.append("Photo", imageInput.files[0]);
+
+      try {
+        const res = await fetch(`${API_URL}/${personnelId}`, {
+          method: "PUT",
+          body: formData
+        });
+
+        if (!res.ok) throw new Error("Erreur de mise à jour");
+        alert("✅ Personnel modifié avec succès !");
+        // Redirection vers la liste
+        window.location.href = "Listepersonnel.html";
+      } catch (err) {
+        console.error(err);
+        alert("❌ Erreur lors de la modification !");
+      }
+    });
+
+    // Afficher nom et rôle utilisateur
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      document.querySelector(".role").textContent = `(${roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1)})`;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // Menu hamburger
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener("click", () => {
+      navlinks.classList.toggle("mobile-menu");
+    });
+
+    // Charger les infos au démarrage
+    window.onload = chargerPersonnel;
+  </script>
+</body>
+
+</html>

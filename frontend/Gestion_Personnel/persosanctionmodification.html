@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <title>PersoManager</title>
+
+  <!-- Font Awesome pour les icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* 🔹 Style du bouton Retour (icône bleue) */
+    .btn-retour {
+      background-color: #3498db;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .btn-retour:hover {
+      background-color: #2c80c4;
+    }
+
+    /* 🔹 Bouton Déconnexion rouge */
+    .btn-logout {
+      background-color: #e74c3c;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .btn-logout:hover {
+      background-color: #c0392b;
+    }
+
+    .logo h1 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+
+    /* 🔹 Bouton Enregistrer */
+    .btn_valider {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      margin-top: 15px;
+    }
+
+    .btn_valider:hover {
+      background-color: #219150;
+    }
+
+  
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>Modification Sanction</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <!-- 🔹 Bouton Retour bleu -->
+        <li>
+          <a href="persosanctiondetailparpersonne.html" class="btn-retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- Nom utilisateur -->
+          <li class="Util2">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+
+        <!-- 🔹 Bouton Déconnexion -->
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <header>
+    <div class="formulaire_saisie">
+      <form id="postForm" class="detail">
+        <div>
+          <table>
+            <tr>
+              <td><label for="nom_personnel">Nom</label></td>
+              <td>:</td>
+              <td><input type="text" id="nom_personnel" readonly></td>
+            </tr>
+            <tr>
+              <td><label for="prenom_personnel">Prénom</label></td>
+              <td>:</td>
+              <td><input type="text" id="prenom_personnel" readonly></td>
+            </tr>
+            <tr>
+              <td><label for="date_emission">Date d'émission</label></td>
+              <td>:</td>
+              <td><input type="date" id="date_emission" required></td>
+            </tr>
+            <tr>
+              <td><label for="type">Type de sanction</label></td>
+              <td>:</td>
+              <td>
+                <select id="type" required>
+                  <option value="">-- Sélectionner --</option>
+                  <option value="1ère avertissement verbal">1ère avertissement verbal</option>
+                  <option value="2ème avertissement verbal">2ème avertissement verbal</option>
+                  <option value="1ère avertissement écrit">1ère avertissement écrit</option>
+                  <option value="2ème avertissement écrit">2ème avertissement écrit</option>
+                  <option value="3ème avertissement écrit">3ème avertissement écrit</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><label for="motif">Motif :</label></td>
+              <td>:</td>
+              <td><textarea id="motif" rows="3" required></textarea></td>
+            </tr>
+          </table>
+          <button type="submit" class="btn_valider">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </header>
+
+  <script>
+    const SANCTION_API = "http://localhost:5000/api/sanctions";
+
+    // 🟢 Afficher le nom utilisateur
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // 🔴 Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // 🔹 Récupération des données de sanction
+    const sanctionData = JSON.parse(localStorage.getItem("sanctionData"));
+    if (!sanctionData) {
+      alert("Aucune sanction sélectionnée !");
+      window.location.href = "persosanctiondetailparpersonne.html";
+    }
+
+    // Pré-remplir le formulaire
+    document.getElementById("nom_personnel").value = sanctionData.personnel.Nom;
+    document.getElementById("prenom_personnel").value = sanctionData.personnel.Prenom;
+    document.getElementById("type").value = sanctionData.sanction.Type_sanction;
+    document.getElementById("motif").value = sanctionData.sanction.Motif;
+
+    if (sanctionData.sanction.Date_emission) {
+      const date = new Date(sanctionData.sanction.Date_emission);
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      document.getElementById("date_emission").value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // 🟢 Soumission du formulaire
+    document.getElementById("postForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const updatedSanction = {
+        Type_sanction: document.getElementById("type").value,
+        Motif: document.getElementById("motif").value,
+        Date_emission: document.getElementById("date_emission").value
+      };
+
+      fetch(`${SANCTION_API}/${sanctionData.sanction._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedSanction)
+      })
+        .then(res => {
+          if (res.ok) {
+            alert("✅ Sanction modifiée avec succès !");
+            localStorage.removeItem("sanctionData");
+            window.location.href = "persosanctiondetailparpersonne.html";
+          } else {
+            alert("❌ Erreur lors de la modification !");
+          }
+        })
+        .catch(err => {
+          console.error("Erreur API PUT:", err);
+          alert("⚠️ Erreur serveur !");
+        });
+    });
+  </script>
+</body>
+
+</html>

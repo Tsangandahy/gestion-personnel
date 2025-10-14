@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>PersoManager</title>
+  <style>
+    /* ✅ Style du bouton Retour */
+    .btn-retour {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      text-decoration: none;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-retour i {
+      margin-right: 8px;
+    }
+
+    .btn-retour:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .navbar ul li {
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-logout {
+      background-color: #dc3545;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .btn-logout:hover {
+      background-color: #b02a37;
+    }
+
+    .menu_humberger {
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .menu_humberger {
+        display: block;
+      }
+
+      .nav-links ul {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 🔹 Barre de navigation -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>Modification contrat</h1>
+    </div>
+
+    <div class="nav-links">
+      <ul>
+        <!-- ✅ Bouton Retour stylisé -->
+        <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- Nom utilisateur -->
+          <li class="Util2">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="nom">---</span>
+        </li>
+
+        <!-- Bouton Déconnexion rouge -->
+        <li>
+          <a href="#" id="btn_quitter" class="btn-logout">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <!-- 🔹 Contenu principal -->
+  <header>
+    <div class="formulaire_saisie">
+      <form id="postForm" class="detail">
+        <div>
+          <table>
+            <tr>
+              <td><label for="nom_personnel">Nom</label></td>
+              <td>:</td>
+              <td><input type="text" id="nom_personnel" readonly></td>
+            </tr>
+
+            <tr>
+              <td><label for="prenom_personnel">Prénom</label></td>
+              <td>:</td>
+              <td><input type="text" id="prenom_personnel" readonly></td>
+            </tr>
+
+            <tr>
+              <td><label>Type de contrat</label></td>
+              <td>:</td>
+              <td>
+                <select id="Type_contrat">
+                  <option value="essai">Essai</option>
+                  <option value="cdd">CDD</option>
+                  <option value="cdi">CDI</option>
+                  <option value="prestateur">Prestateur</option>
+                </select>
+              </td>
+            </tr>
+
+            <tr>
+              <td><label>Date du contrat</label></td>
+              <td>:</td>
+              <td><input type="date" id="Date_contrat"></td>
+            </tr>
+
+            <tr>
+              <td><label>Début du contrat</label></td>
+              <td>:</td>
+              <td><input type="date" id="Debut_contrat"></td>
+            </tr>
+
+            <tr>
+              <td><label>Fin du contrat</label></td>
+              <td>:</td>
+              <td><input type="date" id="Fin_contrat"></td>
+            </tr>
+
+            <tr>
+              <td><label>Fonction</label></td>
+              <td>:</td>
+              <td><input type="text" id="Fonction"></td>
+            </tr>
+          </table>
+
+          <button type="submit" class="btn_valider">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </header>
+
+  <!-- 🔹 Scripts -->
+  <script>
+    const API_CONTRATS = "http://localhost:5000/api/contrats";
+    const API_PERSONNELS = "http://localhost:5000/api/personnels";
+
+    // 🟢 Afficher le nom utilisateur
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    if (nomUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // 🟥 Bouton Quitter
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // 🔹 Récupération des paramètres dans l’URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const contratId = urlParams.get("id");
+    const nomPerso = urlParams.get("nom");
+    const prenomPerso = urlParams.get("prenom");
+
+    if (nomPerso) document.getElementById("nom_personnel").value = nomPerso;
+    if (prenomPerso) document.getElementById("prenom_personnel").value = prenomPerso;
+
+    if (!contratId) {
+      alert("Aucun contrat sélectionné !");
+      window.history.back();
+    }
+
+    // 🔹 Charger les données du contrat existant
+    fetch(`${API_CONTRATS}/${contratId}`)
+      .then(res => res.json())
+      .then(contrat => {
+        const selectType = document.getElementById("Type_contrat");
+        if (contrat.Type_contrat) {
+          selectType.value = contrat.Type_contrat.toLowerCase();
+        }
+
+        document.getElementById("Date_contrat").value = contrat.Date_contrat ? contrat.Date_contrat.split("T")[0] : "";
+        document.getElementById("Debut_contrat").value = contrat.Debut_contrat ? contrat.Debut_contrat.split("T")[0] : "";
+        document.getElementById("Fin_contrat").value = contrat.Fin_contrat ? contrat.Fin_contrat.split("T")[0] : "";
+        document.getElementById("Fonction").value = contrat.Fonction || "";
+      })
+      .catch(err => {
+        console.error("Erreur lors du chargement du contrat :", err);
+        alert("Impossible de charger le contrat !");
+        window.history.back();
+      });
+
+    // 🔹 Soumission du formulaire (PUT)
+    document.getElementById("postForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const contratModifie = {
+        Type_contrat: document.getElementById("Type_contrat").value,
+        Date_contrat: document.getElementById("Date_contrat").value,
+        Debut_contrat: document.getElementById("Debut_contrat").value,
+        Fin_contrat: document.getElementById("Fin_contrat").value,
+        Fonction: document.getElementById("Fonction").value,
+      };
+
+      fetch(`${API_CONTRATS}/${contratId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contratModifie),
+      })
+        .then(res => {
+          if (res.ok) {
+            alert("✅ Contrat modifié avec succès !");
+            window.history.back();
+          } else {
+            alert("❌ Erreur lors de la modification du contrat !");
+          }
+        })
+        .catch(err => {
+          console.error("Erreur :", err);
+          alert("Erreur réseau ou serveur !");
+        });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>PersoManager</title>
+
+  <!-- Font Awesome pour les icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <style>
+    /* 🔹 Bouton bleu pour Retour */
+    .btn-retour {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-retour:hover {
+      background-color: #0056b3;
+    }
+
+    /* 🔹 Style pour bouton quitter */
+    #btn_quitter {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background-color: #dc3545;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 5px;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    #btn_quitter:hover {
+      background-color: #a71d2a;
+    }
+
+    /* 🔹 Affichage nom + rôle */
+    .user-info {
+      color: yellow;
+      font-weight: bold;
+      padding: 4px 8px;
+      background-color: #333;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    .role {
+      color: #00e0ff;
+      margin-left: 6px;
+      font-weight: normal;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ======= Barre de navigation ======= -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>Liste des Utilisateurs</h1>
+    </div>
+
+    <div class="nav-links">
+      <ul>
+        <!-- 🔹 Retour transformé en bouton bleu avec icône -->
+        <li>
+          <a href="../menu_principal.html" class="btn-retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- 🔹 Affichage du nom et rôle de l’utilisateur -->
+        <li>
+          <label style="color: white;">Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+
+        <!-- 🔹 Bouton Quitter -->
+        <li><a href="#" id="btn_quitter"><i class="fa-solid fa-right-from-bracket"></i> Quitter</a></li>
+      </ul>
+    </div>
+
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <!-- ======= Tableau des utilisateurs ======= -->
+  <table class="table_SF" border="1" cellpadding="1" style="margin-top: 20px;">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Rôle</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="userTable">
+      <!-- Les utilisateurs seront insérés ici -->
+    </tbody>
+  </table>
+
+  <script>
+    // ==============================
+    // 🟢 GESTION DU MENU & UTILISATEUR
+    // ==============================
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+
+    menuhumberger.addEventListener('click', () => {
+      navlinks.classList.toggle('mobile-menu');
+    });
+
+    document.querySelectorAll(".nav-links a").forEach(link => {
+      link.addEventListener("click", () => {
+        navlinks.classList.remove("mobile-menu");
+      });
+    });
+
+    // 🔹 Récupération et affichage nom + rôle utilisateur
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // 🔹 Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", () => {
+      localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // ==============================
+    // 🟢 GESTION DE LA LISTE DES UTILISATEURS
+    // ==============================
+    const apiUrl = "http://localhost:5000/api/utilisateur";
+
+    async function fetchUsers() {
+      const res = await fetch(apiUrl);
+      const users = await res.json();
+      const tbody = document.getElementById("userTable");
+      tbody.innerHTML = "";
+
+      users.forEach(user => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${user.nom}</td>
+          <td>${user.mail}</td>
+          <td>${user.role}</td>
+          <td>
+            <button class="delete-btn" onclick="deleteUser('${user._id}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function deleteUser(id) {
+      if (confirm("Voulez-vous vraiment supprimer cet utilisateur ?")) {
+        await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+        fetchUsers();
+      }
+    }
+
+    fetchUsers();
+  </script>
+</body>
+</html>
