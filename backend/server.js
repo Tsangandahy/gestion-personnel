@@ -41,10 +41,5 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
-
-app.get("/", (req, res) => {
-  res.send("Serveur Node.js déployé avec succès sur Render 🚀");
-});
-
 // Lancement du serveur
 app.listen(port, () => console.log(`🚀 Serveur démarré sur le port ${port}`));
