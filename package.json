@@ -2,10 +2,11 @@
   "name": "nodejs_app_naina",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "backend/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon ./backend/server.js"
+    "start": "node ./backend/server.js",
+    "dev": "nodemon ./backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
