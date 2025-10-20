@@ -1,4 +1,4 @@
-const Fournisseur = require("../models/fournisseur.model");
+const Fournisseur = require('../models/fournisseur.model.js');
 
 // Ajouter un fournisseur
 exports.ajouterFournisseur = async (req, res) => {
