@@ -1,3 +1,4 @@
+// backend/server.js
 const express = require("express");
 const connectDB = require("../config/db");
 require("dotenv").config();
@@ -8,38 +9,64 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Connexion à la base de données
+// ➤ Connexion MongoDB
 connectDB();
 
-// Middleware
+// ➤ Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-// Vérifier et créer le dossier uploads si nécessaire
+// ➤ Création dossier uploads si inexistant
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// Servir le frontend (index.html + fichiers statiques)
+// ➤ Dossier frontend
 const frontendPath = path.join(__dirname, "../frontend");
 app.use(express.static(frontendPath));
 
-// Rendre le dossier uploads accessible publiquement
+// ➤ Rendre dossier uploads public
 app.use("/uploads", express.static(uploadDir));
 
-// Routes API
-app.use("/api/absance", require("./routes/absance.route"));
-app.use("/api/utilisateur", require("./routes/utilisateur.route"));
-app.use("/api/contrats", require("./routes/contrat.routes"));
-app.use("/api/sanctions", require("./routes/sanction.routes"));
-app.use("/api/personnels", require("./routes/personnel.routes"));
+// ➤ Importation des routes
+const absanceRoutes = require("./routes/absance.route");
+const utilisateurRoutes = require("./routes/utilisateur.route");
+const contratRoutes = require("./routes/contrat.routes");
+const sanctionRoutes = require("./routes/sanction.routes");
+const personnelRoutes = require("./routes/personnel.routes");
+const fournisseurRoutes = require("./routes/fournisseur.routes");
+const stockAchatRoutes = require("./routes/stockAchat.routes");
+const etatStockRoutes = require("./routes/etatStock.routes");
 
-// Route d'accueil : redirige vers index.html
+// ➤ Utilisation des routes
+app.use("/api/absance", absanceRoutes);
+app.use("/api/utilisateur", utilisateurRoutes);
+app.use("/api/contrats", contratRoutes);
+app.use("/api/sanctions", sanctionRoutes);
+app.use("/api/personnels", personnelRoutes);
+app.use("/api/fournisseurs", fournisseurRoutes);
+app.use("/api/achat", stockAchatRoutes);
+app.use("/api/etat-stock", etatStockRoutes);
+
+// ➤ Page d’accueil
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// Lancement du serveur
+
+const stockRetourRoutes = require("./routes/stockRetour.routes");
+app.use("/api/retour", stockRetourRoutes);
+
+const stockSortieRoutes = require("./routes/stockSortie.routes");
+app.use("/api/sortie", stockSortieRoutes);
+
+// Import des routes
+const articleRoutes = require("./routes/article.route");
+app.use("/api/articles", articleRoutes);
+
+
+
+// ➤ Lancement du serveur
 app.listen(port, () => console.log(`🚀 Serveur démarré sur le port ${port}`));

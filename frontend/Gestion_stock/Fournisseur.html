@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <!-- Font Awesome pour icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <title>Gestion des Fournisseurs</title>
+  <style>
+    th { background-color: #007BFF; color: white; }
+    /* input { width: 100%; box-sizing: border-box; padding: 5px; }
+    button { padding: 5px 10px; cursor: pointer; margin: 2px; border: none; background: none; }
+    button i { font-size: 16px; }
+    .success, .error { display: none; margin-top: 10px; padding: 8px; border-radius: 4px; text-align: center; }
+    .success { background-color: #4CAF50; color: white; }
+    .error { background-color: #f44336; color: white; }
+    .pagination { margin-top: 15px; text-align: center; }
+    .pagination button { margin: 0 3px; padding: 5px 10px; border-radius: 4px; border: 1px solid #007BFF; cursor: pointer; }
+    .pagination button.active { background-color: #007BFF; color: white; }
+    td .action-btn { margin: 0 3px; cursor: pointer; }
+    td .action-btn:hover { color: #007BFF; } */
+  </style>
+</head>
+<body>
+
+<div class="container">
+   <nav class="navbar">
+      <div class="logo">
+        <h1>FOURNISSEUR</h1>
+      </div>
+
+      <div class="nav-links">
+        <ul>
+          <!-- Retour -->
+          <li>
+            <a href="../menu_principal.html" class="btn-retour" title="Retour">
+              <i class="fa-solid fa-arrow-left"></i> Retour
+            </a>
+          </li>
+          <!-- Nom et rôle utilisateur -->
+          <li class="util">
+            <label style="color: white;">Utilisateur :</label>
+            <span class="user-info">
+              <span class="nom">---</span>
+              <span class="role">(---)</span>
+            </span>
+          </li>
+
+          <!-- Déconnexion -->
+          <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+        </ul>
+      </div>
+
+      <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+    </nav>
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>NIF</th>
+        <th>Stat</th>
+        <th>Adresse</th>
+        <th>Téléphone</th>
+        <th>Action</th>
+      </tr>
+      <tr>
+        <td><input type="text" id="fournisseur" placeholder="Nom fournisseur"></td>
+        <td><input type="text" id="nif" placeholder="NIF"></td>
+        <td><input type="text" id="stat" placeholder="Stat"></td>
+        <td><input type="text" id="adresse" placeholder="Adresse"></td>
+        <td><input type="text" id="telephone" placeholder="Téléphone"></td>
+        <td>
+          <button id="addFournisseurBtn">Ajouter</button>
+          <button id="cancelBtn" style="display:none;">Annuler</button>
+        </td>
+      </tr>
+    </thead>
+    <tbody id="fournisseursTable"></tbody>
+  </table>
+
+  <div class="pagination" id="pagination"></div>
+  <div class="success" id="successMsg">Fournisseur ajouté/modifié avec succès !</div>
+  <div class="error" id="errorMsg">Erreur lors de l’opération.</div>
+</div>
+
+<script>
+const fournisseurInput = document.getElementById('fournisseur');
+const nifInput = document.getElementById('nif');
+const statInput = document.getElementById('stat');
+const adresseInput = document.getElementById('adresse');
+const telephoneInput = document.getElementById('telephone');
+const addFournisseurBtn = document.getElementById('addFournisseurBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const fournisseursTable = document.getElementById('fournisseursTable');
+const successMsg = document.getElementById('successMsg');
+const errorMsg = document.getElementById('errorMsg');
+const paginationDiv = document.getElementById('pagination');
+
+let fournisseursData = [];
+let currentPage = 1;
+const rowsPerPage = 10;
+let editingId = null;
+
+// Charger fournisseurs
+async function loadFournisseurs() {
+  try {
+    const response = await fetch('http://localhost:5000/api/fournisseurs');
+    fournisseursData = await response.json();
+    displayPage(currentPage);
+  } catch (error) { console.error(error); }
+}
+
+// Afficher page
+function displayPage(page) {
+  fournisseursTable.innerHTML = '';
+  const start = (page - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  const pageItems = fournisseursData.slice(start, end);
+
+  pageItems.forEach(f => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${f.fournisseur}</td>
+      <td>${f.NIF}</td>
+      <td>${f.Stat}</td>
+      <td>${f.Adresse}</td>
+      <td>${f.Telephone}</td>
+      <td>
+        <button class="action-btn" title="Modifier" onclick="editFournisseur('${f._id}')"><i class="fas fa-edit"></i></button>
+        <button class="action-btn" title="Supprimer" onclick="deleteFournisseur('${f._id}')"><i class="fas fa-trash-alt"></i></button>
+      </td>
+    `;
+    fournisseursTable.appendChild(tr);
+  });
+
+  renderPagination();
+}
+
+// Pagination
+function renderPagination() {
+  paginationDiv.innerHTML = '';
+  const pageCount = Math.ceil(fournisseursData.length / rowsPerPage);
+  for (let i = 1; i <= pageCount; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.className = i === currentPage ? 'active' : '';
+    btn.addEventListener('click', () => { currentPage = i; displayPage(i); });
+    paginationDiv.appendChild(btn);
+  }
+}
+
+// Ajouter ou modifier
+addFournisseurBtn.addEventListener('click', async () => {
+  const data = {
+    fournisseur: fournisseurInput.value.trim(),
+    NIF: nifInput.value.trim(),
+    Stat: statInput.value.trim(),
+    Adresse: adresseInput.value.trim(),
+    Telephone: telephoneInput.value.trim()
+  };
+
+  if (!data.fournisseur || !data.NIF || !data.Stat || !data.Adresse || !data.Telephone) {
+    errorMsg.textContent = 'Tous les champs sont obligatoires.';
+    errorMsg.style.display = 'block';
+    successMsg.style.display = 'none';
+    return;
+  }
+
+  try {
+    let response;
+    if (editingId) {
+      // Modifier
+      response = await fetch(`http://localhost:5000/api/fournisseurs/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } else {
+      // Ajouter
+      response = await fetch('http://localhost:5000/api/fournisseurs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    }
+
+    if (response.ok) {
+      clearForm();
+      await loadFournisseurs();
+      successMsg.style.display = 'block';
+      errorMsg.style.display = 'none';
+    } else throw new Error('Erreur serveur');
+
+  } catch (error) {
+    console.error(error);
+    errorMsg.textContent = 'Erreur serveur';
+    errorMsg.style.display = 'block';
+    successMsg.style.display = 'none';
+  }
+
+  setTimeout(() => { successMsg.style.display = 'none'; errorMsg.style.display = 'none'; }, 3000);
+});
+
+// Remplir le formulaire pour modification
+function editFournisseur(id) {
+  const fournisseur = fournisseursData.find(f => f._id === id);
+  if (!fournisseur) return;
+
+  fournisseurInput.value = fournisseur.fournisseur;
+  nifInput.value = fournisseur.NIF;
+  statInput.value = fournisseur.Stat;
+  adresseInput.value = fournisseur.Adresse;
+  telephoneInput.value = fournisseur.Telephone;
+
+  editingId = id;
+  addFournisseurBtn.textContent = 'Modifier';
+  cancelBtn.style.display = 'inline';
+}
+
+// Annuler modification
+cancelBtn.addEventListener('click', () => clearForm());
+
+function clearForm() {
+  fournisseurInput.value = '';
+  nifInput.value = '';
+  statInput.value = '';
+  adresseInput.value = '';
+  telephoneInput.value = '';
+  editingId = null;
+  addFournisseurBtn.textContent = 'Ajouter';
+  cancelBtn.style.display = 'none';
+}
+
+// Supprimer
+async function deleteFournisseur(id) {
+  if (!confirm('Voulez-vous vraiment supprimer ce fournisseur ?')) return;
+  try {
+    const response = await fetch(`http://localhost:5000/api/fournisseurs/${id}`, { method: 'DELETE' });
+    if (response.ok) loadFournisseurs();
+    else alert('Erreur lors de la suppression.');
+  } catch (error) { console.error(error); }
+}
+
+window.deleteFournisseur = deleteFournisseur;
+window.editFournisseur = editFournisseur;
+
+loadFournisseurs();
+</script>
+
+</body>
+</html>

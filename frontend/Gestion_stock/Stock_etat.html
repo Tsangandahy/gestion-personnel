@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>État de Stock</title>
+
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 20px;
+    }
+
+    /* ===== TABLEAU ===== */
+    #etatStockTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: white;
+      border: 2px solid #007bff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #etatStockTable th, #etatStockTable td {
+      border: 1px solid #007bff;
+      padding: 10px;
+    }
+
+    #etatStockTable th {
+      background-color: #007bff;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    #etatStockTable td:first-child {
+      text-align: left;
+      padding-left: 12px;
+    }
+
+    #etatStockTable td:not(:first-child) {
+      text-align: center;
+    }
+
+    #etatStockTable tbody tr:nth-child(even) {
+      background-color: #f2f7ff;
+    }
+
+    #etatStockTable tbody tr:hover {
+      background-color: #e8f0ff;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #007bff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: white;
+    }
+
+    .nav-links ul {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .menu_humberger {
+      width: 30px;
+      cursor: pointer;
+      display: none;
+    }
+
+    /* ===== PAGINATION ===== */
+    .pagination {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .pagination button {
+      margin: 0 5px;
+      padding: 6px 12px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .pagination button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #exportPDFBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #exportPDFBtn:hover {
+      background-color: #218838;
+    }
+
+    @media(max-width: 768px) {
+      .nav-links { display: none; flex-direction: column; background-color: #007bff; width: 100%; }
+      .nav-links.mobile-menu { display: flex; }
+      .menu_humberger { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>ÉTAT DE STOCK</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <li>
+          <a href="page_de_garde_gestion_stock.html" title="Retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
+        </li>
+        <li class="util">
+          <label>Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+        <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <!-- Tableau État de Stock -->
+  <div class="table-container">
+    <table id="etatStockTable">
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th>Total Achat</th>
+          <th>Total Sortie</th>
+          <th>Total Retour</th>
+          <th>Stock Disponible</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="5">Chargement...</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button id="prevPageBtn">Précédent</button>
+      <span id="pageInfo"></span>
+      <button id="nextPageBtn">Suivant</button>
+    </div>
+
+    <button id="exportPDFBtn">Exporter en PDF</button>
+  </div>
+
+  <!-- jsPDF et plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <script>
+    // === NAVBAR MOBILE ===
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
+
+    // === UTILISATEUR ===
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      document.querySelector(".role").textContent = `(${roleUtilisateur})`;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    document.getElementById("btn_quitter").addEventListener("click", e => {
+      e.preventDefault();
+      localStorage.clear();
+      window.location.href = "../index.html";
+    });
+
+    // === TABLEAU ETAT STOCK ===
+    let allData = [];
+    const rowsPerPage = 10;
+    let currentPage = 1;
+
+    async function loadEtatStock() {
+      const tbody = document.querySelector("#etatStockTable tbody");
+      tbody.innerHTML = "<tr><td colspan='5'>Chargement...</td></tr>";
+
+      try {
+        const response = await fetch("http://localhost:5000/api/etat-stock");
+        if (!response.ok) throw new Error("Erreur serveur : " + response.status);
+        const data = await response.json();
+
+        // Vérifie structure
+        if (!Array.isArray(data)) throw new Error("Format de données incorrect");
+
+        allData = data.map(item => ({
+          article: item.article || "Inconnu",
+          totalAchat: item.totalAchat || 0,
+          totalSortie: item.totalSortie || 0,
+          totalRetour: item.totalRetour || 0
+        }));
+
+        allData.sort((a, b) => a.article.localeCompare(b.article));
+        renderTablePage();
+      } catch (err) {
+        console.error("Erreur de chargement :", err);
+        tbody.innerHTML = "<tr><td colspan='5' style='color:red;'>Erreur de chargement des données</td></tr>";
+      }
+    }
+
+    function renderTablePage() {
+      const tbody = document.querySelector("#etatStockTable tbody");
+      tbody.innerHTML = "";
+
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const pageData = allData.slice(startIndex, endIndex);
+
+      if (pageData.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='5'>Aucune donnée disponible</td></tr>";
+        return;
+      }
+
+      pageData.forEach(item => {
+        const stockDispo = item.totalAchat - item.totalSortie + item.totalRetour;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.article}</td>
+          <td>${item.totalAchat}</td>
+          <td>${item.totalSortie}</td>
+          <td>${item.totalRetour}</td>
+          <td>${stockDispo}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const pageInfo = document.getElementById("pageInfo");
+      const totalPages = Math.ceil(allData.length / rowsPerPage);
+      pageInfo.textContent = `Page ${currentPage} sur ${totalPages}`;
+      document.getElementById("prevPageBtn").disabled = currentPage === 1;
+      document.getElementById("nextPageBtn").disabled = currentPage === totalPages;
+    }
+
+    document.getElementById("prevPageBtn").addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTablePage();
+      }
+    });
+
+    document.getElementById("nextPageBtn").addEventListener("click", () => {
+      const totalPages = Math.ceil(allData.length / rowsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTablePage();
+      }
+    });
+
+    // === EXPORT PDF ===
+    document.getElementById("exportPDFBtn").addEventListener("click", () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("État du Stock", 14, 20);
+      doc.autoTable({
+        startY: 30,
+        head: [["Article", "Total Achat", "Total Sortie", "Total Retour", "Stock Disponible"]],
+        body: allData.map(i => [i.article, i.totalAchat, i.totalSortie, i.totalRetour, i.totalAchat - i.totalSortie + i.totalRetour])
+      });
+      doc.save("etat_stock.pdf");
+    });
+
+    // Charger au démarrage
+    loadEtatStock();
+  </script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortie de Stock Multi-Lignes</title>
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    table {
+      width: 750px;
+      background-color: white;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: blue;
+      color: white;
+    }
+
+    .success,
+    .error {
+      display: none;
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .success {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .error {
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>SORTIE DE STOCK</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <li>
+          <a href="page_de_garde_gestion_stock.html" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </li>
+        <li class="util">
+          <label style="color:white;">Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+        <li>
+          <a href="#" id="btn_quitter" class="btn-logout">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </a>
+        </li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <div class="facture-form">
+    <div class="row">
+      <div class="row-third">
+        <label for="date">Date</label>
+        <input type="date" id="date" required style="width: 150px;">
+      </div>
+
+      <div class="row-third" style="margin-left: -550px;">
+        <label for="receveurSelect">Réceptionnaire</label>
+        <select id="receveurSelect" required style="width: 250px;">
+          <option value="">-- Sélectionner --</option>
+        </select>
+        <input type="hidden" id="idReceveur">
+      </div>
+
+      <div class="row-third" style="margin-left: -370px;">
+        <label for="sortantSelect">Responsable Logistique</label>
+        <select id="sortantSelect" required style="width: 250px;">
+          <option value="">-- Sélectionner --</option>
+        </select>
+        <input type="hidden" id="idSortant">
+      </div>
+    </div>
+
+    <table id="articlesTable">
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th>Quantité</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th>
+            <select id="articleSelect" style="width: 450px;">
+              <option value="">-- Sélectionner un article --</option>
+            </select>
+          </th>
+          <th><input type="number" id="qte" min="1" value="1" style="width: 80px;"></th>
+          <th><button type="button" id="addArticleBtn">Ajouter</button></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr style="background-color: blue; color: white;">
+          <td style="text-align:right;"><strong>Total Articles:</strong></td>
+          <td id="totalQte">0</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <button id="submitSortieBtn" style="margin-top:20px;">Valider</button>
+    <div class="success" id="successMsg">✅ Sortie enregistrée avec succès !</div>
+    <div class="error" id="errorMsg">❌ Erreur lors de l'enregistrement.</div>
+  </div>
+
+  <script>
+    // === Menu mobile
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => {
+      navlinks.classList.toggle('mobile-menu');
+    });
+
+    // === Utilisateur
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      document.querySelector(".role").textContent = `(${roleUtilisateur})`;
+    }
+
+    // === Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.clear();
+      window.location.href = "../index.html";
+    });
+
+    // === Variables
+    let articlesList = [];
+    let personnelsData = [];
+    let articlesData = [];
+
+    const receveurSelect = document.getElementById('receveurSelect');
+    const sortantSelect = document.getElementById('sortantSelect');
+    const articleSelect = document.getElementById('articleSelect');
+    const qteInput = document.getElementById('qte');
+    const articlesTableBody = document.querySelector('#articlesTable tbody');
+    const totalQte = document.getElementById('totalQte');
+    const submitSortieBtn = document.getElementById('submitSortieBtn');
+    const idReceveur = document.getElementById('idReceveur');
+    const idSortant = document.getElementById('idSortant');
+    const dateInput = document.getElementById('date');
+    const successMsg = document.getElementById('successMsg');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // === Charger personnels
+    async function loadPersonnels() {
+      try {
+        const res = await fetch('http://localhost:5000/api/personnels');
+        personnelsData = await res.json();
+        personnelsData.forEach(p => {
+          const opt1 = document.createElement('option');
+          opt1.value = p._id; opt1.textContent = `${p.Nom} ${p.Prenom}`;
+          receveurSelect.appendChild(opt1);
+
+          const opt2 = document.createElement('option');
+          opt2.value = p._id; opt2.textContent = `${p.Nom} ${p.Prenom}`;
+          sortantSelect.appendChild(opt2);
+        });
+      } catch (e) {
+        console.error("Erreur chargement personnels:", e);
+      }
+    }
+
+    receveurSelect.addEventListener('change', () => idReceveur.value = receveurSelect.value);
+    sortantSelect.addEventListener('change', () => idSortant.value = sortantSelect.value);
+
+    // === Charger articles
+    async function loadArticles() {
+      try {
+        const res = await fetch('http://localhost:5000/api/articles');
+        articlesData = await res.json();
+        articleSelect.innerHTML = '<option value="">-- Sélectionner un article --</option>';
+        articlesData.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a._id; opt.textContent = a.Article;
+          articleSelect.appendChild(opt);
+        });
+      } catch (e) {
+        console.error("Erreur chargement articles:", e);
+      }
+    }
+
+    // === Ajouter article
+    document.getElementById('addArticleBtn').addEventListener('click', () => {
+      const idArticle = articleSelect.value;
+      const articleNom = articleSelect.options[articleSelect.selectedIndex].text;
+      const q = Number(qteInput.value);
+
+      if (!idArticle || q <= 0) return alert("Sélectionnez un article et quantité valide");
+
+      articlesList.push({ idArticle, article: articleNom, q });
+      renderTable();
+      articleSelect.value = '';
+      qteInput.value = 1;
+    });
+
+    function deleteArticle(i) { articlesList.splice(i,1); renderTable(); }
+
+    function renderTable() {
+      articlesTableBody.innerHTML = '';
+      let total = 0;
+      articlesList.forEach((a,i)=>{
+        total += a.q;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${a.article}</td><td>${a.q}</td><td><button onclick="deleteArticle(${i})">Supprimer</button></td>`;
+        articlesTableBody.appendChild(tr);
+      });
+      totalQte.textContent = total;
+    }
+
+    // === Soumettre sortie
+    submitSortieBtn.addEventListener('click', async () => {
+      if (!idReceveur.value || !idSortant.value || !dateInput.value || !articlesList.length) {
+        return alert("Veuillez remplir tous les champs et ajouter au moins un article !");
+      }
+
+      try {
+        const res = await fetch('http://localhost:5000/api/stock-sortie/add', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            idPersonnelReceveur:idReceveur.value,
+            idPersonnelSortant:idSortant.value,
+            date: dateInput.value,
+            articles: articlesList
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Erreur d’enregistrement");
+
+        articlesList=[];
+        renderTable();
+        successMsg.style.display='block';
+        errorMsg.style.display='none';
+        setTimeout(()=>successMsg.style.display='none',3000);
+      } catch(e){
+        console.error(e);
+        errorMsg.style.display='block';
+        successMsg.style.display='none';
+        setTimeout(()=>errorMsg.style.display='none',3000);
+      }
+    });
+
+    // === Démarrage
+    loadPersonnels();
+    loadArticles();
+  </script>
+</body>
+</html>

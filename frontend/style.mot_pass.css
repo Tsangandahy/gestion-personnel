@@ -156,6 +156,69 @@ nav ul li:hover a {
     object-fit: cover;
     border: 1px solid #ccc;
 }
+.espace_input .article{
+/* background-color: rgb(250, 232, 138); */
+border: none;
+height: 20px;
+width: 300px;
+height:25px;
+}
+.espace_input .pu_qte_montant{
+/* background-color: rgb(250, 232, 138); */
+border: none;
+height: 20px;
+width: 100px;
+height:25px;
+}
+thead .tete_table .tete_colone_01{
+    width: 300px;
+}
+thead .tete_table .tete_colone_02{
+   width: 70px;
+}
+
+
+
+
+.facture-form {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.row label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+.row input, .row select, button {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 12px;
+}
+.row-third { flex: 1 1 30%; min-width: 120px; }
+button { background-color:#007bff;color:white;border:none;cursor:pointer; }
+button:hover{background-color:#0056b3;}
+table { width:100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+table, th, td { border: 1px solid #ccc; }
+th, td { padding: 6px; text-align: left; }
+.delete-btn { background-color:red;color:white;border:none;padding:3px 8px;cursor:pointer;border-radius:3px;font-size:11px; }
+.success { color:green; font-weight:bold; margin-top:10px; display:none; }
+.error { color:red; font-weight:bold; margin-top:10px; display:none; }
+
+.cacher{
+    display: none;
+}
 
 /* FIN TABLE */
 

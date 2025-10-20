@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facture d'Achat Multi-Lignes</title>
+
+<link rel="stylesheet" href="../style.mot_pass.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+  <!-- 🔹 Barre de navigation -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>ACHAT FOURNITURE</h1>
+    </div>
+
+    <div class="nav-links">
+      <ul>
+        <!-- ✅ Bouton Retour -->
+        <li>
+          <a href="page_de_garde_gestion_stock.html" class="btn-retour" title="Retour">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </li>
+
+        <!-- ✅ Nom et rôle utilisateur -->
+        <li class="util">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+
+        <!-- ✅ Bouton Déconnexion -->
+        <li>
+          <a href="#" id="btn_quitter" class="btn-logout">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <!-- 🔹 Formulaire Facture -->
+  <div class="facture-form">
+    <div class="row">
+      <div class="row-third">
+        <label for="date">Date</label>
+        <input type="date" id="date" required>
+      </div>
+
+      <div class="row-third" style="margin-left: -550px;">
+        <label for="fournisseurSelect">Fournisseur</label>
+        <select id="fournisseurSelect" required>
+          <option value="">-- Sélectionner un fournisseur --</option>
+        </select>
+      </div>
+
+      <div class="row-third" style="margin-left: -350px;">
+        <label for="personnelSelect">Responsable</label>
+        <select id="personnelSelect" required>
+          <option value="">-- Sélectionner un personnel --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 🔹 Tableau Articles -->
+    <table id="articlesTable" style="width: 750px; background-color:white; margin-top: 20px;">
+      <thead>
+        <tr style="background-color: blue; color: white;">
+          <th>Article</th>
+          <th>Quantité</th>
+          <th>Prix Unitaire</th>
+          <th>Montant</th>
+          <th></th>
+        </tr>
+        <tr class="espace_input">
+          <th>
+            <!-- ✅ Liste déroulante des articles -->
+            <select id="articleSelect" class="article" required>
+              <option value="">-- Sélectionner un article --</option>
+            </select>
+          </th>
+          <th><input type="number" id="inputQte" min="1" value="1" class="pu_qte_montant"></th>
+          <th><input type="number" id="inputPU" min="0" value="0" class="pu_qte_montant"></th>
+          <th><input type="number" id="inputMontant" readonly value="0" class="pu_qte_montant"></th>
+          <th><button type="button" id="addArticleBtn">Ajouter</button></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr style="background-color: blue; color: white;">
+          <td colspan="3" style="text-align:right;"><strong>Total:</strong></td>
+          <td id="totalGeneral">0</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <button id="submitFactureBtn" style="margin-top: 20px;">Valider</button>
+    <div class="success" id="successMsg">Enregistrement avec succès !</div>
+    <div class="error" id="errorMsg">Erreur lors de l'enregistrement.</div>
+  </div>
+
+  <script>
+    // === 🟦 Gestion du Menu Hamburger ===
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => {
+      navlinks.classList.toggle('mobile-menu');
+    });
+    document.querySelectorAll(".nav-links a").forEach(link => {
+      link.addEventListener("click", () => {
+        navlinks.classList.remove("mobile-menu");
+      });
+    });
+
+    // === 🟦 Affichage nom et rôle utilisateur ===
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // === 🟥 Déconnexion ===
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // === 🟨 Variables principales ===
+    const fournisseurSelect = document.getElementById('fournisseurSelect');
+    const personnelSelect = document.getElementById('personnelSelect');
+    const articleSelect = document.getElementById('articleSelect');
+    const dateInput = document.getElementById('date');
+    const inputQte = document.getElementById('inputQte');
+    const inputPU = document.getElementById('inputPU');
+    const inputMontant = document.getElementById('inputMontant');
+    const addArticleBtn = document.getElementById('addArticleBtn');
+    const articlesTableBody = document.querySelector('#articlesTable tbody');
+    const totalGeneral = document.getElementById('totalGeneral');
+    const submitFactureBtn = document.getElementById('submitFactureBtn');
+    const successMsg = document.getElementById('successMsg');
+    const errorMsg = document.getElementById('errorMsg');
+
+    let articlesList = [];
+
+    // === 🟨 Calcul automatique du montant ===
+    function updateMontant() {
+      const q = Number(inputQte.value) || 0;
+      const pu = Number(inputPU.value) || 0;
+      inputMontant.value = q * pu;
+    }
+    inputQte.addEventListener('input', updateMontant);
+    inputPU.addEventListener('input', updateMontant);
+
+    // === 🟩 Ajouter un article à la facture ===
+    addArticleBtn.addEventListener('click', () => {
+      const article = articleSelect.value;
+      const q = Number(inputQte.value);
+      const pu = Number(inputPU.value);
+
+      if (!article || q <= 0 || pu < 0) {
+        alert("Remplir correctement les champs (choisir un article, quantité > 0, PU ≥ 0)");
+        return;
+      }
+
+      const montant = q * pu;
+      articlesList.push({ article, q, pu, montant });
+      renderTable();
+
+      articleSelect.value = "";
+      inputQte.value = 1;
+      inputPU.value = 0;
+      inputMontant.value = 0;
+    });
+
+    // === 🔴 Supprimer un article ===
+    function deleteArticle(i) {
+      articlesList.splice(i, 1);
+      renderTable();
+    }
+    window.deleteArticle = deleteArticle;
+
+    // === 🟦 Afficher tableau articles ajoutés ===
+    function renderTable() {
+      articlesTableBody.innerHTML = "";
+      let total = 0;
+      articlesList.forEach((a, i) => {
+        total += a.montant;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${a.article}</td>
+          <td>${a.q}</td>
+          <td>${a.pu}</td>
+          <td>${a.montant}</td>
+          <td><button class="delete-btn" onclick="deleteArticle(${i})">Supprimer</button></td>`;
+        articlesTableBody.appendChild(tr);
+      });
+      totalGeneral.textContent = total;
+    }
+
+    // === 🟧 Charger Fournisseurs ===
+    async function loadFournisseurs() {
+      try {
+        const res = await fetch('http://localhost:5000/api/fournisseurs');
+        const data = await res.json();
+        data.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.NomFournisseur || f.fournisseur;
+          opt.textContent = f.NomFournisseur || f.fournisseur;
+          fournisseurSelect.appendChild(opt);
+        });
+      } catch (e) {
+        console.error("Erreur chargement fournisseurs:", e);
+      }
+    }
+
+    // === 🟧 Charger Personnels ===
+    async function loadPersonnels() {
+      try {
+        const res = await fetch('http://localhost:5000/api/personnels');
+        const data = await res.json();
+        data.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p._id;
+          opt.textContent = `${p.Nom} ${p.Prenom}`;
+          personnelSelect.appendChild(opt);
+        });
+      } catch (e) {
+        console.error("Erreur chargement personnels:", e);
+      }
+    }
+
+    // === 🟦 Charger Articles (liste déroulante) ===
+    async function loadArticles() {
+      try {
+        const res = await fetch('http://localhost:5000/api/articles');
+        const data = await res.json();
+        data.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.Article;
+          opt.textContent = a.Article;
+          articleSelect.appendChild(opt);
+        });
+      } catch (e) {
+        console.error("Erreur chargement articles:", e);
+      }
+    }
+
+    // === 🟩 Enregistrer la facture (achats) ===
+    submitFactureBtn.addEventListener('click', async () => {
+      if (!fournisseurSelect.value || !personnelSelect.value || !dateInput.value || articlesList.length === 0) {
+        alert("Remplir tous les champs et ajouter au moins un article");
+        return;
+      }
+
+      try {
+        await Promise.all(articlesList.map(a =>
+          fetch('http://localhost:5000/api/achat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fournisseur: fournisseurSelect.value,
+              idPersonnel: personnelSelect.value,
+              article: a.article,
+              qte: a.q,
+              pu: a.pu,
+              date: dateInput.value
+            })
+          })
+        ));
+
+        articlesList = [];
+        renderTable();
+        fournisseurSelect.value = "";
+        personnelSelect.value = "";
+        dateInput.value = "";
+        successMsg.style.display = "block";
+        setTimeout(() => successMsg.style.display = "none", 3000);
+      } catch (e) {
+        console.error("Erreur enregistrement facture:", e);
+        errorMsg.style.display = "block";
+        setTimeout(() => errorMsg.style.display = "none", 3000);
+      }
+    });
+
+    // === 🟦 Charger toutes les données au démarrage ===
+    loadFournisseurs();
+    loadPersonnels();
+    loadArticles();
+  </script>
+
+</body>
+</html>

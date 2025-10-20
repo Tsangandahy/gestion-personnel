@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ajouter un Article</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px auto;
+      max-width: 600px;
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #4caf50;
+      color: white;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #43a047;
+    }
+    #message {
+      text-align: center;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #e8f5e9;
+      margin: 6px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #c8e6c9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ajouter un Article</h1>
+
+  <form id="articleForm">
+    <label for="Article">Nom de l'article :</label>
+    <input type="text" id="Article" name="Article" placeholder="Ex: Stylo, Clavier..." required />
+    <button type="submit">Ajouter</button>
+  </form>
+
+  <p id="message"></p>
+
+  <h2>Liste des Articles</h2>
+  <ul id="articleList"></ul>
+
+  <script>
+    const form = document.getElementById('articleForm');
+    const message = document.getElementById('message');
+    const articleList = document.getElementById('articleList');
+
+    // ✅ URL mise à jour selon ton serveur
+    const API_URL = 'http://localhost:5000/api/articles';
+
+    // Charger la liste des articles
+    async function fetchArticles() {
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error('Erreur serveur: ' + res.status);
+        const articles = await res.json();
+
+        articleList.innerHTML = '';
+
+        if (!Array.isArray(articles) || articles.length === 0) {
+          articleList.innerHTML = '<li>Aucun article trouvé.</li>';
+          return;
+        }
+
+        articles.forEach(a => {
+          const li = document.createElement('li');
+          li.textContent = a.Article || 'Article sans nom';
+          articleList.appendChild(li);
+        });
+
+      } catch (err) {
+        articleList.innerHTML = `<li style="color:red;">Erreur : ${err.message}</li>`;
+      }
+    }
+
+    // Ajouter un article
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const Article = document.getElementById('Article').value.trim();
+
+      if (!Article) {
+        message.textContent = "Veuillez entrer un nom d'article.";
+        message.style.color = "red";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ Article })
+        });
+
+        const text = await res.text(); // Le contrôleur renvoie du texte simple
+        message.textContent = text;
+        message.style.color = res.ok ? "green" : "red";
+
+        if (res.ok) {
+          form.reset();
+          fetchArticles();
+        }
+
+      } catch (err) {
+        message.textContent = "❌ Erreur : " + err.message;
+        message.style.color = "red";
+      }
+    });
+
+    // Charger au démarrage
+    fetchArticles();
+  </script>
+</body>
+</html>

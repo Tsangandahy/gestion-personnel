@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.mot_pass.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>Retour en Stock Multi-Lignes</title>
+  <style>
+    .Util2 {
+      color: white;
+      font-weight: bold;
+      margin-right: 20px;
+    }
+
+    .Util2 .role {
+      font-style: italic;
+      color: #ffd700;
+      margin-left: 5px;
+    }
+
+    .btn-retour i,
+    .btn-logout i {
+      margin-right: 5px;
+    }
+
+    table {
+      width: 750px;
+      border-collapse: collapse;
+      background-color: white;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: blue;
+      color: white;
+    }
+
+    .success,
+    .error {
+      display: none;
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .success {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .error {
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 🔹 Barre de navigation -->
+  <nav class="navbar">
+    <div class="logo">
+      <h1>RETOUR EN STOCK</h1>
+    </div>
+    <div class="nav-links">
+      <ul>
+        <li>
+          <a href="page_de_garde_gestion_stock.html" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </li>
+        <li class="util">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+        <li>
+          <a href="#" id="btn_quitter" class="btn-logout">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </a>
+        </li>
+      </ul>
+    </div>
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
+  </nav>
+
+  <!-- 🔹 Formulaire Retour -->
+  <div class="facture-form">
+    <div class="row">
+      <div class="row-third">
+        <label for="date">Date</label>
+        <input type="date" id="date" required style="width: 100px;">
+      </div>
+
+      <div class="row-third" style="margin-left: -550px;">
+        <label for="personnelRetour">Personnel (retourneur)</label>
+        <select id="personnelRetour" required style="width: 280px;">
+          <option value="">-- Sélectionner le personnel --</option>
+        </select>
+        <div class="cacher">
+          <input type="text" id="fonctionRetour" readonly>
+          <input type="text" id="telRetour" readonly>
+          <input type="text" id="idRetour" readonly>
+        </div>
+      </div>
+
+      <div class="row-third" style="margin-left: -360px;">
+        <label for="personnelStock">Magasinier / Réceptionneur</label>
+        <select id="personnelStock" required style="width: 275px;">
+          <option value="">-- Sélectionner le magasinier --</option>
+        </select>
+        <div class="cacher">
+          <input type="text" id="fonctionStock" readonly>
+          <input type="text" id="telStock" readonly>
+          <input type="text" id="idStock" readonly>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau des articles -->
+    <table id="articlesTable">
+      <thead>
+        <tr style="background-color: blue; color: white;">
+          <th>Article</th>
+          <th>Quantité</th>
+          <th></th>
+        </tr>
+        <tr class="espace_input">
+          <th>
+            <select id="articleSelect" style="width: 500px;">
+              <option value="">-- Sélectionner un article --</option>
+            </select>
+          </th>
+          <th><input type="number" id="qte" min="1" value="1"></th>
+          <th><button type="button" id="addArticleBtn">Ajouter</button></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr style="background-color: blue; color: white;">
+          <td style="text-align:right;"><strong>Total Articles:</strong></td>
+          <td id="totalQte">0</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <button id="submitRetourBtn" style="margin-top:20px;">Enregistrer Retour</button>
+    <div class="success" id="successMsg">Retour enregistré avec succès !</div>
+    <div class="error" id="errorMsg">Erreur lors de l'enregistrement.</div>
+  </div>
+
+  <script>
+    // ===============================
+    // 🔹 Affichage de l'utilisateur
+    // ===============================
+    const nomUtilisateur = document.querySelector('.nom');
+    const roleUtilisateur = document.querySelector('.role');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const nom = localStorage.getItem("nom_utilisateur");
+      const role = localStorage.getItem("role_utilisateur");
+
+      if (nom && role) {
+        nomUtilisateur.textContent = nom;
+        const roleAffichage = role.charAt(0).toUpperCase() + role.slice(1);
+        roleUtilisateur.textContent = `(${roleAffichage})`;
+      } else {
+        window.location.href = "../index.html";
+      }
+    });
+
+    // 🔹 Déconnexion
+    document.getElementById('btn_quitter').addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // ===============================
+    // 🔹 Gestion du retour en stock
+    // ===============================
+    let articlesList = [];
+    let personnelsData = [];
+    let articlesData = [];
+
+    const personnelRetour = document.getElementById('personnelRetour');
+    const personnelStock = document.getElementById('personnelStock');
+    const articleSelect = document.getElementById('articleSelect');
+    const qteInput = document.getElementById('qte');
+    const addArticleBtn = document.getElementById('addArticleBtn');
+    const articlesTableBody = document.querySelector('#articlesTable tbody');
+    const totalQte = document.getElementById('totalQte');
+    const submitRetourBtn = document.getElementById('submitRetourBtn');
+
+    const idRetour = document.getElementById('idRetour');
+    const fonctionRetour = document.getElementById('fonctionRetour');
+    const telRetour = document.getElementById('telRetour');
+
+    const idStock = document.getElementById('idStock');
+    const fonctionStock = document.getElementById('fonctionStock');
+    const telStock = document.getElementById('telStock');
+
+    const dateInput = document.getElementById('date');
+    const successMsg = document.getElementById('successMsg');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // 🔹 Charger la liste des personnels
+    async function loadPersonnels() {
+      try {
+        const res = await fetch('http://localhost:5000/api/personnels');
+        personnelsData = await res.json();
+
+        personnelsData.forEach(p => {
+          const opt1 = document.createElement('option');
+          opt1.value = p._id;
+          opt1.textContent = `${p.Nom} ${p.Prenom}`;
+          personnelRetour.appendChild(opt1);
+
+          const opt2 = document.createElement('option');
+          opt2.value = p._id;
+          opt2.textContent = `${p.Nom} ${p.Prenom}`;
+          personnelStock.appendChild(opt2);
+        });
+      } catch (err) {
+        console.error("Erreur chargement personnels :", err);
+      }
+    }
+
+    // 🔹 Charger la liste des articles
+    async function loadArticles() {
+      try {
+        const res = await fetch('http://localhost:5000/api/articles');
+        articlesData = await res.json();
+
+        articleSelect.innerHTML = '<option value="">-- Sélectionner un article --</option>';
+        articlesData.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a._id; // Id de l'article
+          opt.textContent = a.Article; // Nom affiché
+          articleSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Erreur chargement articles :", err);
+      }
+    }
+
+    // 🔹 Gestion des sélections personnels
+    personnelRetour.addEventListener('change', () => {
+      const p = personnelsData.find(x => x._id === personnelRetour.value);
+      if (p) {
+        idRetour.value = p._id;
+        fonctionRetour.value = p.Fonction || '';
+        telRetour.value = p.Telephone || '';
+      }
+    });
+
+    personnelStock.addEventListener('change', () => {
+      const p = personnelsData.find(x => x._id === personnelStock.value);
+      if (p) {
+        idStock.value = p._id;
+        fonctionStock.value = p.Fonction || '';
+        telStock.value = p.Telephone || '';
+      }
+    });
+
+    // 🔹 Ajouter un article
+    addArticleBtn.addEventListener('click', () => {
+      const idArticle = articleSelect.value;
+      const nomArticle = articleSelect.options[articleSelect.selectedIndex].text;
+      const q = Number(qteInput.value);
+
+      if (!idArticle || q <= 0) {
+        alert("Veuillez sélectionner un article et une quantité valide !");
+        return;
+      }
+
+      articlesList.push({ idArticle, nomArticle, q });
+      renderTable();
+      articleSelect.value = "";
+      qteInput.value = 1;
+    });
+
+    // 🔹 Supprimer un article
+    function deleteArticle(i) {
+      articlesList.splice(i, 1);
+      renderTable();
+    }
+    window.deleteArticle = deleteArticle;
+
+    // 🔹 Affichage du tableau
+    function renderTable() {
+      articlesTableBody.innerHTML = "";
+      let total = 0;
+      articlesList.forEach((a, i) => {
+        total += a.q;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${a.nomArticle}</td>
+          <td>${a.q}</td>
+          <td><button style="background:red;" onclick="deleteArticle(${i})">Supprimer</button></td>
+        `;
+        articlesTableBody.appendChild(tr);
+      });
+      totalQte.textContent = total;
+    }
+
+    // 🔹 Enregistrement du retour
+    submitRetourBtn.addEventListener('click', async () => {
+      if (!personnelRetour.value || !personnelStock.value || !dateInput.value || articlesList.length === 0) {
+        alert("Veuillez remplir tous les champs et ajouter au moins un article !");
+        return;
+      }
+
+      try {
+        await Promise.all(
+          articlesList.map(a =>
+            fetch('http://localhost:5000/api/stock-sortie', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                idPersonnelReceveur: idRetour.value,
+                idPersonnelSortant: idStock.value,
+                idArticle: a.idArticle,
+                qte: a.q,
+                date: dateInput.value
+              })
+            })
+          )
+        );
+
+        // Réinitialisation
+        articlesList = [];
+        renderTable();
+        personnelRetour.value = '';
+        personnelStock.value = '';
+        dateInput.value = '';
+        idRetour.value = fonctionRetour.value = telRetour.value = '';
+        idStock.value = fonctionStock.value = telStock.value = '';
+
+        successMsg.style.display = 'block';
+        errorMsg.style.display = 'none';
+        setTimeout(() => successMsg.style.display = 'none', 3000);
+      } catch (err) {
+        console.error(err);
+        successMsg.style.display = 'none';
+        errorMsg.style.display = 'block';
+        setTimeout(() => errorMsg.style.display = 'none', 3000);
+      }
+    });
+
+    // Charger personnels et articles au démarrage
+    loadPersonnels();
+    loadArticles();
+  </script>
+</body>
+</html>

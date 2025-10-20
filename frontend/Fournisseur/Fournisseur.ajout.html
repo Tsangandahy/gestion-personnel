@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Fournisseurs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    .success { color: green; font-weight: bold; margin-top: 10px; display: none; }
+    .error { color: red; font-weight: bold; margin-top: 10px; display: none; }
+    .delete-btn {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Gestion des Fournisseurs</h2>
+
+  <div>
+    <label for="fournisseur">Nom du Fournisseur</label>
+    <input type="text" id="fournisseur">
+
+    <label for="nif">NIF</label>
+    <input type="text" id="nif">
+
+    <label for="stat">Stat</label>
+    <input type="text" id="stat">
+
+    <label for="adresse">Adresse</label>
+    <input type="text" id="adresse">
+
+    <label for="telephone">Téléphone</label>
+    <input type="text" id="telephone">
+
+    <button id="addFournisseurBtn">Ajouter Fournisseur</button>
+    <div class="success" id="successMsg">Fournisseur ajouté avec succès !</div>
+    <div class="error" id="errorMsg">Erreur lors de l'ajout du fournisseur.</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>NIF</th>
+        <th>Stat</th>
+        <th>Adresse</th>
+        <th>Téléphone</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="fournisseursTable">
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const fournisseurInput = document.getElementById('fournisseur');
+  const nifInput = document.getElementById('nif');
+  const statInput = document.getElementById('stat');
+  const adresseInput = document.getElementById('adresse');
+  const telephoneInput = document.getElementById('telephone');
+  const addFournisseurBtn = document.getElementById('addFournisseurBtn');
+  const fournisseursTable = document.getElementById('fournisseursTable');
+  const successMsg = document.getElementById('successMsg');
+  const errorMsg = document.getElementById('errorMsg');
+
+  // Afficher tous les fournisseurs
+  async function loadFournisseurs() {
+    try {
+      const response = await fetch('http://localhost:5000/api/fournisseurs');
+      const fournisseurs = await response.json();
+      fournisseursTable.innerHTML = '';
+      fournisseurs.forEach(f => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${f.fournisseur}</td>
+          <td>${f.NIF}</td>
+          <td>${f.Stat}</td>
+          <td>${f.Adresse}</td>
+          <td>${f.Telephone}</td>
+          <td><button class="delete-btn" onclick="deleteFournisseur('${f._id}')">Supprimer</button></td>
+        `;
+        fournisseursTable.appendChild(tr);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // Ajouter un fournisseur
+  addFournisseurBtn.addEventListener('click', async () => {
+    const data = {
+      fournisseur: fournisseurInput.value,
+      NIF: nifInput.value,
+      Stat: statInput.value,
+      Adresse: adresseInput.value,
+      Telephone: telephoneInput.value
+    };
+
+    if (!data.fournisseur || !data.NIF || !data.Stat || !data.Adresse || !data.Telephone) {
+      alert('Veuillez remplir tous les champs.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/fournisseurs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        fournisseurInput.value = '';
+        nifInput.value = '';
+        statInput.value = '';
+        adresseInput.value = '';
+        telephoneInput.value = '';
+        successMsg.style.display = 'block';
+        errorMsg.style.display = 'none';
+        loadFournisseurs();
+      } else {
+        errorMsg.style.display = 'block';
+        successMsg.style.display = 'none';
+      }
+    } catch (error) {
+      console.error(error);
+      errorMsg.style.display = 'block';
+      successMsg.style.display = 'none';
+    }
+  });
+
+  // Supprimer un fournisseur
+  async function deleteFournisseur(id) {
+    if (!confirm('Voulez-vous vraiment supprimer ce fournisseur ?')) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/fournisseurs/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        loadFournisseurs();
+      } else {
+        alert('Erreur lors de la suppression.');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // Charger les fournisseurs au démarrage
+  loadFournisseurs();
+
+  // Rendre deleteFournisseur accessible globalement
+  window.deleteFournisseur = deleteFournisseur;
+</script>
+
+</body>
+</html>
