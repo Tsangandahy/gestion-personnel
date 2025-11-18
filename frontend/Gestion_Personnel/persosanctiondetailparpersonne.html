@@ -6,39 +6,142 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../style.mot_pass.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <title>PersoManager</title>
+  <title>Longozy</title>
+
+  <style>
+    body {
+      margin: 0 10px;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #003366;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 10px;
+    }
+
+    .navbar h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .nav-links ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+
+    .nav-links a:hover {
+      background-color: #00509e;
+    }
+
+    .btn-logout {
+      background-color: #c62828;
+    }
+
+    .btn-logout:hover {
+      background-color: #e53935;
+    }
+
+    .btn-retour i {
+      margin-right: 5px;
+    }
+
+    .menu_humberger {
+      width: 35px;
+      height: 35px;
+      cursor: pointer;
+    }
+
+    .contrat_header {
+      width: 100%;
+    }
+
+    .action-btn {
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 18px;
+    }
+
+    .action-btn:hover {
+      opacity: 0.7;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      color: #777;
+      font-size: 14px;
+    }
+
+    /* ✅ Style utilisateur */
+    .util {
+      color: white;
+    }
+
+    .util .nom {
+      font-weight: bold;
+    }
+
+    .util .role {
+      font-style: italic;
+      margin-left: 4px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- Navbar -->
+  <!-- ✅ Navbar -->
   <nav class="navbar">
     <div class="logo">
       <h1>Détail de sanction par personnel</h1>
     </div>
+
     <div class="nav-links">
       <ul>
-        <!-- 🔹 Bouton Retour remplacé par une icône bleue -->
         <li>
           <a href="page_de_garde_gestion_personnel.html" class="btn-retour">
             <i class="fas fa-arrow-left"></i> Retour
           </a>
         </li>
 
-        <!-- Nom utilisateur affiché -->
-        <li class="Util2">
-          <label style="color:white;">Utilisateur :</label>
-          <span class="nom">---</span>
+        <!-- ✅ Nom + rôle utilisateur -->
+        <li class="util">
+          <label>Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
         </li>
 
-        <!-- Bouton Déconnexion rouge -->
+        <!-- ✅ Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
+
     <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
-  <!-- Header / Formulaire personnel -->
+  <!-- ✅ Contenu principal -->
   <header>
     <div class="contrat_header">
       <div style="width: 100%;">
@@ -46,8 +149,10 @@
           <tr>
             <td>Nom</td>
             <td>:</td>
-            <td><input type="text" id="nom" readonly></td>
-            <td><img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+            <td>
+              <input type="text" id="nom" readonly>
+              <img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image">
+            </td>
           </tr>
           <tr>
             <td>Prénom</td>
@@ -61,7 +166,7 @@
           </tr>
         </table>
 
-        <!-- Section pour afficher les sanctions -->
+        <!-- ✅ Section sanctions -->
         <div id="sanction_section" style="margin:20px 0; display:block;width: 100%;">
           <h3><span id="nom_personnel_sanction" style="display: none;"></span></h3>
           <table class="table_SF" border="1" cellpadding="5">
@@ -84,7 +189,7 @@
     </div>
   </header>
 
-  <!-- Liste du personnel -->
+  <!-- ✅ Liste du personnel -->
   <div class="list_personnel">
     <input type="text" class="Recherche" placeholder="Rechercher...">
     <button class="fermer_liste">X</button>
@@ -108,6 +213,10 @@
 
   <input type="hidden" id="Id_personnel">
 
+  <footer>
+    © 2025 - Gestion du personnel | Tous droits réservés
+  </footer>
+
   <script>
     const API_URL = "http://localhost:5000/api/personnels";
     const SANCTION_API = "http://localhost:5000/api/sanctions";
@@ -119,27 +228,32 @@
     const menuhumberger = document.querySelector(".menu_humberger");
     const navlinks = document.querySelector(".nav-links");
 
-    // Menu hamburger et toggle liste personnel
+    // ✅ Menu hamburger
     menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
     petitimage.addEventListener('click', () => listpersonnel.classList.toggle('vue'));
     fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
 
-    // Afficher nom utilisateur connecté
+    // ✅ Afficher nom et rôle utilisateur depuis localStorage
     const nomUtilisateur = localStorage.getItem("nom_utilisateur");
-    if (nomUtilisateur) {
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
       document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
     } else {
       window.location.href = "../index.html";
     }
 
-    // Bouton Quitter
+    // ✅ Déconnexion
     document.getElementById("btn_quitter").addEventListener("click", (e) => {
       e.preventDefault();
       localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
       window.location.href = "../index.html";
     });
 
-    // Gestion personnel et sanctions
+    // ✅ Gestion du personnel et sanctions
     let currentPage = 1;
     const rowsPerPage = 6;
     let allPersonnels = [];
@@ -147,7 +261,11 @@
     function chargerpersonnel() {
       fetch(API_URL)
         .then(res => res.json())
-        .then(data => { allPersonnels = data; afficherPersonnels(); afficherPagination(); })
+        .then(data => {
+          allPersonnels = data;
+          afficherPersonnels();
+          afficherPagination();
+        })
         .catch(err => console.error("Erreur API :", err));
     }
 
@@ -191,12 +309,15 @@
         const btn = document.createElement("button");
         btn.textContent = i;
         if (i === currentPage) btn.style.fontWeight = "bold";
-        btn.addEventListener("click", () => { currentPage = i; afficherPersonnels(); afficherPagination(); });
+        btn.addEventListener("click", () => {
+          currentPage = i;
+          afficherPersonnels();
+          afficherPagination();
+        });
         paginationContainer.appendChild(btn);
       }
     }
 
-    // Recherche
     document.querySelector(".Recherche").addEventListener("input", (e) => {
       const filtre = e.target.value.toLowerCase();
       const personnelsFiltres = allPersonnels.filter(p =>
@@ -211,7 +332,7 @@
         row.innerHTML = `<td>${personnel.Nom}</td>
                          <td>${personnel.Prenom}</td>
                          <td>${personnel.CIN || "-"}</td>
-                         <td><button class="btn-valider">Voir sanctions</button></td>`;
+                         <td><button class="btn-valider"><<</button></td>`;
         personnelContainer.appendChild(row);
       });
 
@@ -267,7 +388,12 @@
               row.querySelector(".btn-supp").addEventListener("click", () => {
                 if (confirm("Voulez-vous vraiment supprimer cette sanction ?")) {
                   fetch(`${SANCTION_API}/${s._id}`, { method: "DELETE" })
-                    .then(r => { if (r.ok) { alert("✅ Supprimé !"); chargerSanctions(idpersonnel, nom); } else alert("Erreur ❌"); })
+                    .then(r => {
+                      if (r.ok) {
+                        alert("✅ Supprimé !");
+                        chargerSanctions(idpersonnel, nom);
+                      } else alert("Erreur ❌");
+                    })
                     .catch(err => console.error("Erreur API delete :", err));
                 }
               });
@@ -282,4 +408,5 @@
     window.onload = chargerpersonnel;
   </script>
 </body>
+
 </html>

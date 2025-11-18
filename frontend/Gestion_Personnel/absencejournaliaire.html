@@ -3,36 +3,94 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>PersoManager</title>
+  <title>Longozy</title>
   <link rel="stylesheet" href="../style.mot_pass.css">
 
-  <!-- Font Awesome pour icônes -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    table.table_SF {
+      width: 98%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    table.table_SF th,
+    table.table_SF td {
+      border: 1px solid #ccc;
+      text-align: center;
+      padding: 8px;
+    }
+
+    table.table_SF th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    #contrats_section {
+      margin: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #btn_search {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #btn_search:hover {
+      background-color: #0056b3;
+    }
+
+    .user-info {
+      color: white;
+    }
+
+    .user-info .nom {
+      font-weight: bold;
+    }
+
+    .user-info .role {
+      font-style: italic;
+    }
+  </style>
 </head>
 
 <body>
 
+  <!-- ===== NAVBAR ===== -->
   <nav class="navbar">
     <div class="logo">
-      <h1>N_sy_A</h1>
+      <h1>Absences Journalières</h1>
     </div>
 
     <div class="nav-links">
       <ul>
-        <!-- Retour remplacé par icône + bouton bleu -->
         <li>
           <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
             <i class="fa-solid fa-arrow-left"></i> Retour
           </a>
         </li>
 
-        <!-- Nom utilisateur affiché ici -->
-        <li >
+        <li class="util">
           <label style="color: white;">Utilisateur :</label>
-          <span class="nom" style="color: yellow; font-weight: bold;">---</span>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
         </li>
 
-        <!-- Bouton Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
@@ -40,47 +98,80 @@
     <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
-  <div id="contrats_section" style="margin-left: 25px; display:block;width: 100%;">
-    <label for="selected_date"> Date :</label>
+  <!-- ===== FILTRE ===== -->
+  <div id="contrats_section">
+    <label for="selected_date">Date :</label>
     <input type="date" id="selected_date">
-    <button id="btn_search">Rechercher</button>
+    <button id="btn_search"><i class="fa-solid fa-magnifying-glass"></i></button>
   </div>
 
+  <!-- ===== TABLEAU ===== -->
   <div>
-    <table id="recap_table" class="table_SF" border="1" cellpadding="5" style="margin-top: -2px;">
+    <table id="recap_table" class="table_SF">
       <thead>
         <tr>
           <th>Nom</th>
           <th>Prénom</th>
-          <th>Date début absence</th>
-          <th>Date prise de service</th>
+          <th>Date début</th>
+          <th>Date fin</th>
           <th>Total jours</th>
           <th>Type</th>
           <th>Motif</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody>
+        <tr><td colspan="7" style="text-align:center;">Veuillez sélectionner une date</td></tr>
+      </tbody>
     </table>
   </div>
 
   <script>
-    // 🟢 Afficher le nom de l'utilisateur connecté
+    // 🟢 MENU HAMBURGER
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+
+    menuhumberger.addEventListener('click', () => {
+      navlinks.classList.toggle('mobile-menu');
+    });
+
+    document.querySelectorAll(".nav-links a").forEach(link => {
+      link.addEventListener("click", () => {
+        navlinks.classList.remove("mobile-menu");
+      });
+    });
+
+    // 🟢 UTILISATEUR CONNECTÉ
     const nomUtilisateur = localStorage.getItem("nom_utilisateur");
-    if (nomUtilisateur) {
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
       document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
     } else {
-      // Si non connecté → retour à la page login
       window.location.href = "../index.html";
     }
 
-    // 🟥 Bouton Déconnexion
+    // 🟥 DÉCONNEXION
     document.getElementById("btn_quitter").addEventListener("click", (e) => {
       e.preventDefault();
       localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
       window.location.href = "../index.html";
     });
 
-    // 🟡 Rechercher les absents d’une date
+    // 🟢 Fonction pour formater les dates en JJ/MM/AA
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const date = new Date(dateStr);
+      if (isNaN(date)) return "";
+      const jour = String(date.getDate()).padStart(2, "0");
+      const mois = String(date.getMonth() + 1).padStart(2, "0");
+      const annee = String(date.getFullYear()).slice(-2); // 2 derniers chiffres
+      return `${jour}/${mois}/${annee}`;
+    }
+
+    // 🟡 RECHERCHE DES ABSENTS PAR DATE
     const dateInput = document.getElementById("selected_date");
     const tableBody = document.querySelector("#recap_table tbody");
     const btn = document.getElementById("btn_search");
@@ -106,13 +197,13 @@
         absents.forEach(a => {
           const row = document.createElement("tr");
           row.innerHTML = `
-            <td>${a.Nom}</td>
-            <td>${a.Prenom}</td>
-            <td>${a.DateDebut}</td>
-            <td>${a.DatePriseService}</td>
-            <td>${a.TotalJours}</td>
-            <td>${a.Type}</td>
-            <td>${a.Motif}</td>
+            <td>${a.Nom || ""}</td>
+            <td>${a.Prenom || ""}</td>
+            <td>${formatDate(a.DateDebut) || ""}</td>
+            <td>${formatDate(a.DatePriseService) || ""}</td>
+            <td>${a.TotalJours || ""}</td>
+            <td>${a.Type || ""}</td>
+            <td>${a.Motif || ""}</td>
           `;
           tableBody.appendChild(row);
         });
@@ -122,6 +213,6 @@
       }
     });
   </script>
-</body>
 
+</body>
 </html>

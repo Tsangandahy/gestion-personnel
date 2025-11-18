@@ -4,11 +4,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PersoManager</title>
+  <title>Longozy</title>
   <link rel="stylesheet" href="../style.mot_pass.css">
-  
+
   <!-- Font Awesome pour icônes -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* 🔹 Style du bouton recherche carré */
+    #btn_recap {
+      background-color: #ffffff;
+      color: #007bff;
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      width: 35px;
+      height: 35px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .date-filters label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .date-filters input[type="date"] {
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .message {
+      color: red;
+      margin-left: 20px;
+      font-weight: bold;
+    }
+
+    table.table_SF {
+      margin: 20px;
+      width: calc(100% - 40px);
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    table.table_SF th,
+    table.table_SF td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    table.table_SF th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .utilisateur-info {
+      color: white;
+    }
+
+    .user-info .nom {
+      font-weight: bold;
+    }
+
+    .user-info .role {
+      font-style: italic;
+    }
+
+    #pagination {
+      margin: 10px;
+      text-align: center;
+    }
+
+    #pagination button {
+      margin: 0 3px;
+      padding: 5px 10px;
+      border: 1px solid #007bff;
+      background-color: #fff;
+      color: #007bff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #pagination button:disabled {
+      background-color: #007bff;
+      color: white;
+      cursor: default;
+    }
+  </style>
 </head>
 
 <body>
@@ -20,32 +113,42 @@
 
     <div class="nav-links">
       <ul>
-       <!-- Retour transformé en bouton bleu -->
-          <li>
-            <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
-              <i class="fa-solid fa-arrow-left"></i> Retour
-            </a>
-          </li>
-
-       <li >
-          <label>Utilisateur :</label>
-          <span class="nom">---</span>
+        <!-- Bouton retour -->
+        <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
         </li>
 
+        <!-- Affichage nom et rôle -->
+        <li class="utilisateur-info">
+          <label>Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+
+        <!-- Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
+
+    <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
-  <!-- ===== Filtre date ===== -->
+  <!-- ===== Filtre date + bouton carré ===== -->
   <div class="date-filters">
-    <label for="start_date">Date début :</label>
+    <label for="start_date">Date Début :</label>
     <input type="date" id="start_date">
 
-    <label for="end_date">Date fin :</label>
+    <label for="end_date">Fin :</label>
     <input type="date" id="end_date">
 
-    <button id="btn_recap">Afficher le récapitulatif</button>
+    <!-- 🔹 Bouton carré recherche -->
+    <button id="btn_recap" title="Afficher le récapitulatif">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
   </div>
 
   <div id="message" class="message"></div>
@@ -70,11 +173,16 @@
   </div>
 
   <script>
-    // 🟢 Vérification utilisateur
+    // 🟢 Vérification utilisateur (nom + rôle)
     const nomUtilisateur = localStorage.getItem("nom_utilisateur");
-    if (nomUtilisateur) {
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
       document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
     } else {
+      // Redirection si non connecté
       window.location.href = "../index.html";
     }
 
@@ -82,7 +190,15 @@
     document.getElementById("btn_quitter").addEventListener("click", (e) => {
       e.preventDefault();
       localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
       window.location.href = "../index.html";
+    });
+
+    // 🟢 Menu hamburger
+    const menuhumberger = document.querySelector(".menu_humberger");
+    const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => {
+      navlinks.classList.toggle('mobile-menu');
     });
 
     // 🟢 API URLs
@@ -93,6 +209,7 @@
     let allRecap = [];
     let currentPage = 1;
 
+    // 🔍 Recherche récapitulatif
     document.getElementById("btn_recap").addEventListener("click", async () => {
       const start = document.getElementById("start_date").value;
       const end = document.getElementById("end_date").value;
@@ -139,6 +256,7 @@
       }
     });
 
+    // 🧾 Affichage du tableau
     function afficherPage(page) {
       const recapTable = document.getElementById("recap_table");
       recapTable.innerHTML = "";

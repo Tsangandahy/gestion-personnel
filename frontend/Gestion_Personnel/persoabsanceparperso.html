@@ -5,9 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../style.mot_pass.css">
-  <title>PersoManager</title>
+  <title>Longozy</title>
 
-  <!-- Font Awesome pour icônes -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
@@ -29,12 +29,11 @@
       cursor: not-allowed;
     }
 
-    /* Style pour le résumé total */
     #totals_par_type {
       font-size: 13px;
-      margin-left: 20px;
       margin-top: 10px;
       padding: 10px;
+      margin-left: 10px;
       width: fit-content;
     }
 
@@ -67,7 +66,6 @@
       background-color: #f2f2f2;
     }
 
-    /* Boutons action dans tableau absences */
     .action-icon {
       font-size: 16px;
       cursor: pointer;
@@ -87,12 +85,6 @@
       color: #e74c3c;
     }
 
-
-
-    .btn-selection:hover {
-      background-color: #27ae60;
-    }
-     /* Bouton Retour bleu */
     .btn-retour {
       background-color: #3498db;
       color: white;
@@ -109,6 +101,40 @@
     .btn-retour:hover {
       background-color: #2980b9;
     }
+
+    .btn-recherche {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 16px;
+    }
+
+    .btn-recherche:hover {
+      background-color: #2980b9;
+    }
+
+    .btn-recherche i {
+      pointer-events: none;
+    }
+
+    /* Style utilisateur dans navbar */
+    .util {
+      color: white;
+      font-size: 14px;
+    }
+
+    .util .user-info {
+      margin-left: 5px;
+    }
+
+    .util .role {
+      font-style: italic;
+      color: #dcdcdc;
+    }
   </style>
 </head>
 
@@ -116,22 +142,32 @@
   <!-- Navbar -->
   <nav class="navbar">
     <div class="logo">
-      <h1>ETAT ABSENCES</h1>
+      <h1>ÉTAT ABSENCES</h1>
     </div>
+
     <div class="nav-links">
       <ul>
-  <li>
-            <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
-              <i class="fa-solid fa-arrow-left"></i> Retour
-            </a>
-          </li>
-          <li class="Util2">
-          <label style="color:white;">Utilisateur :</label>
-          <span class="nom">---</span>
+        <!-- Retour -->
+        <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
         </li>
+
+        <!-- Nom et rôle utilisateur -->
+        <li class="util">
+          <label>Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+
+        <!-- Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
+
     <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
@@ -142,8 +178,10 @@
           <tr>
             <td>Nom</td>
             <td>:</td>
-            <td><input type="text" id="nom" readonly></td>
-            <td><img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+            <td>
+              <input type="text" id="nom" readonly>
+              <img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image">
+            </td>
           </tr>
           <tr>
             <td>Prénom</td>
@@ -161,20 +199,22 @@
             <td>
               <input type="date" id="date_debut" style="width: 145px;"> -
               <input type="date" id="date_fin" style="width: 145px;">
-              <button id="btn-filtrer" type="button">Filtrer</button>
+              <button id="btn-filtrer" class="btn-recherche" title="Rechercher">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
             </td>
           </tr>
         </table>
 
         <!-- Liste des absences -->
-        <div id="absences_section" style="margin:20px 0; display:block; width:100%;">
+        <div id="sanction_section" style="margin:20px 0; display:block;width: 100%;">
           <h3 style="display: none;">Absences de <span id="nom_personnel_absence"></span></h3>
           <table class="table_SF" border="1" cellpadding="1">
             <thead>
               <tr>
                 <th>Date Dépôt</th>
                 <th>Date Départ</th>
-                <th>Date Prise Service</th>
+                <th>Date Fin</th>
                 <th>Nombre de jours</th>
                 <th>Type</th>
                 <th>Motif</th>
@@ -188,20 +228,15 @@
             </tbody>
           </table>
 
-          <!-- Pagination absences -->
           <div id="pagination_absences"></div>
-
-          <p style="margin-left: 20px; margin-top: 10px; display: none;">
+          <p style="margin-top: 10px; display: none;">
             Total jours d'absence : <span id="total_absences">0</span>
           </p>
-
-          <!-- Tableau récapitulatif -->
-          <div id="totals_par_type"></div>
+          <div id="totals_par_type" style="margin-top: -20px;"></div>
         </div>
       </div>
   </header>
 
-  <!-- Liste personnel -->
   <div class="list_personnel">
     <input type="text" class="Recherche" placeholder="Rechercher...">
     <button class="fermer_liste">X</button>
@@ -226,7 +261,7 @@
     const navlinks = document.querySelector(".nav-links");
     menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
 
-    // Liste personnel
+    // Liste du personnel
     const petitimage = document.querySelector(".petit_image");
     const listpersonnel = document.querySelector(".list_personnel");
     const fermerliste = document.querySelector(".fermer_liste");
@@ -241,24 +276,31 @@
 
     fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
 
-    // Utilisateur connecté
+    // 🔐 Afficher nom + rôle utilisateur
     const nomUtilisateur = localStorage.getItem("nom_utilisateur");
-    if (nomUtilisateur) {
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
       document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
     } else {
       window.location.href = "../index.html";
     }
 
+    // 🔒 Déconnexion
     document.getElementById("btn_quitter").addEventListener("click", (e) => {
       e.preventDefault();
       localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
       window.location.href = "../index.html";
     });
 
-    // API
+    // ---------------------
+    //  Gestion Absences
+    // ---------------------
     const API_URL = "http://localhost:5000/api/personnels";
     const ABS_API = "http://localhost:5000/api/absance";
-
     const personnelContainer = document.getElementById("personnel-contener");
     let allPersonnels = [];
     let allAbsences = [];
@@ -301,7 +343,6 @@
           document.getElementById("nom").value = personnel.Nom;
           document.getElementById("prenom").value = personnel.Prenom;
           listpersonnel.classList.remove("vue");
-          document.getElementById("absences_section").style.display = "block";
         });
       });
     }
@@ -323,7 +364,7 @@
       }
     }
 
-    // Filtrer absences
+    // 🔍 Recherche absences
     document.getElementById("btn-filtrer").addEventListener("click", () => {
       const id = document.getElementById("Id_personnel").value;
       const start = document.getElementById("date_debut").value;

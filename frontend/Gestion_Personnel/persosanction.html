@@ -4,38 +4,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PersoManager</title>
+  <title>Longozy</title>
   <link rel="stylesheet" href="../style.mot_pass.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+  <!-- 🔷 Barre de navigation -->
   <nav class="navbar">
     <div class="logo">
-      <h1>Ajout sanction</h1>
+      <h1>Ajout Sanction</h1>
     </div>
+
     <div class="nav-links">
       <ul>
-        <!-- 🔵 Bouton retour en icône -->
-          <li>
+        <!-- 🔙 Bouton retour -->
+        <li>
           <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
             <i class="fa-solid fa-arrow-left"></i> Retour
           </a>
         </li>
 
-        <!-- 🟡 Nom utilisateur affiché ici -->
-        <li class="Util2">
+        <!-- 👤 Nom et rôle utilisateur -->
+        <li class="util">
           <label style="color: white;">Utilisateur :</label>
-          <span class="nom">---</span>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
         </li>
 
-        <!-- 🔴 Bouton Déconnexion rouge -->
+        <!-- 🚪 Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
+
     <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
+  <!-- 🔸 Formulaire principal -->
   <header>
     <div class="formulaire_saisie">
       <form id="postForm" class="detail">
@@ -45,7 +53,7 @@
               <td>Nom</td>
               <td>:</td>
               <td><input type="text" id="nom" readonly></td>
-              <td><img src="../Image/image_personnel.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+              <td><img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
             </tr>
             <tr>
               <td>Prénom</td>
@@ -88,7 +96,7 @@
     </div>
   </header>
 
-  <!-- Liste du personnel -->
+  <!-- 🔸 Liste du personnel -->
   <div class="list_personnel">
     <input type="text" class="Recherche" placeholder="Rechercher...">
     <button class="fermer_liste">X</button>
@@ -109,6 +117,31 @@
   <input type="hidden" id="Id_personnel">
 
   <script>
+    // ============================
+    // 🔷 GESTION UTILISATEUR CONNECTÉ
+    // ============================
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
+    } else {
+      window.location.href = "../index.html";
+    }
+
+    // 🔴 Déconnexion
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
+      window.location.href = "../index.html";
+    });
+
+    // ============================
+    // 🔷 GESTION SANCTIONS
+    // ============================
     const API_URL = "http://localhost:5000/api/personnels";
     const SANCTION_API = "http://localhost:5000/api/sanctions";
 
@@ -147,6 +180,7 @@
       let start = (currentPage - 1) * rowsPerPage;
       let end = start + rowsPerPage;
       let personnels = allPersonnels.slice(start, end);
+
       personnels.forEach((personnel, index) => {
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -207,8 +241,10 @@
       paginationContainer.appendChild(next);
     }
 
+    // 🟢 Enregistrer une sanction
     document.getElementById("btn-submit").addEventListener("click", (e) => {
       e.preventDefault();
+
       const idpersonnel = document.getElementById("Id_personnel").value;
       const Date_emission = document.getElementById("Date_emission").value;
       const Type_sanction = document.getElementById("Type_sanction").value;
@@ -232,16 +268,7 @@
         });
     });
 
-    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
-    if (nomUtilisateur) document.querySelector(".nom").textContent = nomUtilisateur;
-    else window.location.href = "../index.html";
-
-    document.getElementById("btn_quitter").addEventListener("click", (e) => {
-      e.preventDefault();
-      localStorage.removeItem("nom_utilisateur");
-      window.location.href = "../index.html";
-    });
-
+    // Charger personnel au démarrage
     window.onload = chargerpersonnel;
   </script>
 </body>

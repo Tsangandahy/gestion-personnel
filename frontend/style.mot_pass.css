@@ -4,10 +4,12 @@
     box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
 }
-
 body {
     background-color: rgba(142, 142, 145, 0.509);
     /* Couleur de fond */
+     margin: 0 2px;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
 }
 
 .header {
@@ -209,8 +211,8 @@ thead .tete_table .tete_colone_02{
 .row-third { flex: 1 1 30%; min-width: 120px; }
 button { background-color:#007bff;color:white;border:none;cursor:pointer; }
 button:hover{background-color:#0056b3;}
-table { width:100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-table, th, td { border: 1px solid #ccc; }
+/* table { width:100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; } */
+/* table, th, td { border: 1px solid #ccc; } */
 th, td { padding: 6px; text-align: left; }
 .delete-btn { background-color:red;color:white;border:none;padding:3px 8px;cursor:pointer;border-radius:3px;font-size:11px; }
 .success { color:green; font-weight:bold; margin-top:10px; display:none; }
@@ -297,7 +299,7 @@ th, td { padding: 6px; text-align: left; }
 
 /* STYLE POUR LES FORMULAIRE  */
 .navbar {
-    background-color: #1dbdd285;
+    background-color: #0a0c76af;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -309,7 +311,7 @@ th, td { padding: 6px; text-align: left; }
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    margin-left: 20px;
+    /* margin-left: 2px; */
 }
 
 .contrat_header table {
@@ -400,8 +402,8 @@ th, td { padding: 6px; text-align: left; }
 
 .tableau_en_tete input {
     width: 300px;
-    height: 30px;
-    padding-left: 30px;
+    height: 20px;
+    padding-left: 20px;
     border: 1px;
 }
 
@@ -538,9 +540,10 @@ textarea {
 
 /* ===== Tableau ===== */
 .tableau_en_tete {
-    margin-top: 10px;
-    border: solid 1px;
-    background-color: rgba(250, 235, 215, 0.537);
+    margin-top: 1px;
+     border-collapse: collapse;
+    /* border: solid 1px; */
+    /* background-color: rgba(250, 235, 215, 0.537); */
     margin-left: 20px;
 }
 
@@ -552,7 +555,7 @@ textarea {
 
 #recap_section th,
 #recap_section td {
-    border: 1px solid #000;
+    /* border: 1px solid #000; */
     padding: 6px;
     font-size: 13px;
     text-align: center;

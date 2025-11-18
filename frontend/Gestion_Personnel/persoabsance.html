@@ -5,37 +5,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../style.mot_pass.css">
-  <title>PersoManager</title>
-  <!-- Font Awesome pour l'icône -->
+  <title>Longozy</title>
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+  <!-- 🔹 NAVIGATION -->
   <nav class="navbar">
     <div class="logo">
       <h1>AJOUT ABSENCE</h1>
     </div>
+
     <div class="nav-links">
       <ul>
-        <!-- Bouton Retour bleu avec icône -->
+        <!-- 🔹 Bouton Retour -->
         <li>
           <a href="page_de_garde_gestion_personnel.html" class="btn-retour">
             <i class="fa-solid fa-arrow-left"></i> Retour
           </a>
         </li>
 
-        <li class="Util2">
+        <!-- 🔹 Nom et rôle utilisateur -->
+        <li class="util">
           <label style="color: white;">Utilisateur :</label>
-          <span class="nom">---</span>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
         </li>
 
-        <!-- Bouton Déconnexion rouge -->
+        <!-- 🔹 Bouton Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
+
     <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
+  <!-- 🔹 FORMULAIRE D’AJOUT ABSENCE -->
   <header>
     <div class="formulaire_saisie">
       <form id="postForm" class="detail">
@@ -45,7 +54,7 @@
               <td>Nom</td>
               <td>:</td>
               <td><input type="text" id="nom" readonly></td>
-              <td><img src="../Image/image_personnel.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+              <td><img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
             </tr>
             <tr>
               <td>Prénom</td>
@@ -75,9 +84,7 @@
             <tr>
               <td>Nombre de jours</td>
               <td>:</td>
-              <td>
-                <input type="number" id="nombre_jour" step="0.01" min="0" placeholder="ex: 1.5 ou 1,5">
-              </td>
+              <td><input type="number" id="nombre_jour" step="0.01" min="0" placeholder="ex: 1.5 ou 1,5"></td>
             </tr>
             <tr>
               <td>Type</td>
@@ -97,16 +104,18 @@
               <td><input type="text" id="motif_absance"></td>
             </tr>
           </table>
+
           <button id="btn-submit" type="button" class="btn_valider">Valider</button>
         </div>
       </form>
     </div>
   </header>
 
-  <!-- Liste du personnel -->
+  <!-- 🔹 LISTE DU PERSONNEL -->
   <div class="list_personnel">
     <input type="text" class="Recherche" placeholder="Rechercher...">
     <button class="fermer_liste">X</button>
+
     <table>
       <thead>
         <tr>
@@ -124,38 +133,48 @@
   <input type="hidden" id="Id_personnel">
   <input type="hidden" id="Id_personnel_contrat">
 
+  <!-- 🔹 SCRIPT -->
   <script>
-    // 🔗 API
+    // --- URLs API ---
     const API_URL = "http://localhost:5000/api/personnels";
     const ABSENCE_API = "http://localhost:5000/api/absance";
 
-    // 🟢 Utilisateur connecté
+    // --- Données utilisateur depuis localStorage ---
     const nomUtilisateur = localStorage.getItem("nom_utilisateur");
-    const spanNom = document.querySelector(".nom");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
 
-    if (nomUtilisateur) spanNom.textContent = nomUtilisateur;
-    else window.location.href = "../index.html";
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
+    } else {
+      // Redirige vers la page de connexion si non connecté
+      window.location.href = "../index.html";
+    }
 
-    // 🟥 Bouton quitter
+    // --- Déconnexion ---
     document.getElementById("btn_quitter").addEventListener("click", (e) => {
       e.preventDefault();
       localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
       window.location.href = "../index.html";
     });
 
-    // 🟢 Menu hamburger et liste personnel
-    const personnelContainer = document.getElementById("personnel-contener");
-    const listpersonnel = document.querySelector(".list_personnel");
+    // --- Menu hamburger ---
     const menuhumberger = document.querySelector(".menu_humberger");
     const navlinks = document.querySelector(".nav-links");
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
+
+    // --- Gestion de la liste du personnel ---
+    const listpersonnel = document.querySelector(".list_personnel");
     const petitimage = document.querySelector(".petit_image");
     const fermerliste = document.querySelector(".fermer_liste");
+    const personnelContainer = document.getElementById("personnel-contener");
+    const paginationContainer = document.getElementById("pagination");
 
     petitimage.addEventListener('click', () => listpersonnel.classList.toggle('vue'));
     fermerliste.addEventListener('click', () => listpersonnel.classList.remove('vue'));
-    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
 
-    // 🟢 Pagination et chargement
     let currentPage = 1;
     const rowsPerPage = 6;
     let allPersonnels = [];
@@ -168,7 +187,7 @@
           afficherPersonnels();
           afficherPagination();
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error("Erreur chargement personnel :", err));
     }
 
     function afficherPersonnels() {
@@ -177,6 +196,7 @@
         personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
         return;
       }
+
       const start = (currentPage - 1) * rowsPerPage;
       const end = start + rowsPerPage;
       const personnels = allPersonnels.slice(start, end);
@@ -195,8 +215,6 @@
       document.querySelectorAll(".btn-valider").forEach((btn, i) => {
         btn.addEventListener("click", () => {
           const p = allPersonnels[(currentPage - 1) * rowsPerPage + i];
-          document.getElementById("Id_personnel").value = p._id;
-          document.getElementById("Id_personnel_contrat").value = p._id;
           document.getElementById("Id_personnel_input").value = p._id;
           document.getElementById("nom").value = p.Nom;
           document.getElementById("prenom").value = p.Prenom;
@@ -206,38 +224,48 @@
     }
 
     function afficherPagination() {
-      const paginationContainer = document.getElementById("pagination");
       paginationContainer.innerHTML = "";
       const totalPages = Math.ceil(allPersonnels.length / rowsPerPage);
 
       const prev = document.createElement("button");
       prev.textContent = "◀";
       prev.disabled = currentPage === 1;
-      prev.addEventListener("click", () => { currentPage--; afficherPersonnels(); afficherPagination(); });
+      prev.addEventListener("click", () => {
+        currentPage--;
+        afficherPersonnels();
+        afficherPagination();
+      });
       paginationContainer.appendChild(prev);
 
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement("button");
         btn.textContent = i;
         if (i === currentPage) btn.style.backgroundColor = "#ddd";
-        btn.addEventListener("click", () => { currentPage = i; afficherPersonnels(); afficherPagination(); });
+        btn.addEventListener("click", () => {
+          currentPage = i;
+          afficherPersonnels();
+          afficherPagination();
+        });
         paginationContainer.appendChild(btn);
       }
 
       const next = document.createElement("button");
       next.textContent = "▶";
       next.disabled = currentPage === totalPages;
-      next.addEventListener("click", () => { currentPage++; afficherPersonnels(); afficherPagination(); });
+      next.addEventListener("click", () => {
+        currentPage++;
+        afficherPersonnels();
+        afficherPagination();
+      });
       paginationContainer.appendChild(next);
     }
 
-    // 🟢 Conversion virgule → point
-    const inputNombreJour = document.getElementById("nombre_jour");
-    inputNombreJour.addEventListener("input", function () {
+    // --- Conversion , → . ---
+    document.getElementById("nombre_jour").addEventListener("input", function () {
       this.value = this.value.replace(",", ".");
     });
 
-    // 🟢 Enregistrement absence
+    // --- Validation formulaire ---
     document.getElementById("btn-submit").addEventListener("click", () => {
       const idpersonnel = document.getElementById("Id_personnel_input").value;
       const Date_depot = document.getElementById("Date_depot").value;
@@ -273,5 +301,4 @@
     window.onload = chargerpersonnel;
   </script>
 </body>
-
 </html>

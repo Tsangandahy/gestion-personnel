@@ -4,39 +4,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Longozy</title>
   <link rel="stylesheet" href="../style.mot_pass.css">
-  <title>PersoManager</title>
-  <!-- Font Awesome pour icônes -->
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 
+  <!-- 🔹 BARRE DE NAVIGATION -->
   <nav class="navbar">
     <div class="logo">
       <h1>Ajout Contrat</h1>
     </div>
+
     <div class="nav-links">
       <ul>
-                <!-- Retour transformé en bouton bleu -->
-          <li>
-            <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
-              <i class="fa-solid fa-arrow-left"></i> Retour
-            </a>
-          </li>
-
-       <li class="Util2">
-          <span style="color:white;">Utilisateur :</span>
-          <span class="nom-utilisateur">---</span>
+        <!-- Bouton retour -->
+        <li>
+          <a href="page_de_garde_gestion_personnel.html" class="btn-retour" title="Retour">
+            <i class="fa-solid fa-arrow-left"></i> Retour
+          </a>
         </li>
 
-        <!-- Bouton Déconnexion rouge -->
+        <!-- 🔸 Affichage utilisateur + rôle -->
+        <li class="util">
+          <label style="color: white;">Utilisateur :</label>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
+        </li>
+
+        <!-- 🔴 Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
+
     <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
+  <!-- 🔹 FORMULAIRE D’AJOUT CONTRAT -->
   <header>
     <div class="formulaire_saisie">
       <form id="postForm" class="detail">
@@ -47,9 +56,7 @@
               <td>:</td>
               <td><input type="text" id="nom" readonly></td>
               <td>
-                <div class="btn_liste_perso">
-                  <img src="../Image/image_personnel.jpg" class="petit_image">
-                </div>
+                <img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image">
               </td>
             </tr>
             <tr>
@@ -112,53 +119,64 @@
     </div>
   </header>
 
-  <!-- Liste personnel -->
+  <!-- 🔹 LISTE DU PERSONNEL -->
   <div class="list_personnel">
     <input type="text" class="Recherche" placeholder="Rechercher...">
     <button class="fermer_liste">X</button>
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>CIN</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="personnel-contener"></tbody>
-      </table>
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>CIN</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="personnel-contener"></tbody>
+    </table>
     <div id="pagination"></div>
   </div>
 
-  <!-- champs cachés -->
   <input type="hidden" id="Id_personnel">
   <input type="hidden" id="Id_personnel_contrat">
 
+  <!-- 🔹 SCRIPT PRINCIPAL -->
   <script>
-    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const API_URL = "http://localhost:5000/api/personnels";
+    const CONTRAT_API = "http://localhost:5000/api/contrats";
 
-    if (nomUtilisateur) {
-      document.querySelector(".nom-utilisateur").textContent = nomUtilisateur;
+    // ------------------------
+    // 🔸 GESTION UTILISATEUR
+    // ------------------------
+    const nomUtilisateur = localStorage.getItem("nom_utilisateur");
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
+      document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
     } else {
       alert("⚠️ Vous devez vous connecter !");
       window.location.href = "../index.html";
     }
 
-    document.getElementById("btn_quitter").addEventListener("click", () => {
+    document.getElementById("btn_quitter").addEventListener("click", (e) => {
+      e.preventDefault();
       localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
       window.location.href = "../index.html";
     });
 
+    // ------------------------
+    // 🔸 MENU HAMBURGER
+    // ------------------------
     const menuhumberger = document.querySelector(".menu_humberger");
     const navlinks = document.querySelector(".nav-links");
-    menuhumberger.addEventListener('click', () => {
-      navlinks.classList.toggle('mobile-menu');
-    });
+    menuhumberger.addEventListener('click', () => navlinks.classList.toggle('mobile-menu'));
 
-    const API_URL = "http://localhost:5000/api/personnels";
-    const CONTRAT_API = "http://localhost:5000/api/contrats";
+    // ------------------------
+    // 🔸 GESTION PERSONNEL
+    // ------------------------
     const personnelContainer = document.getElementById("personnel-contener");
     const listpersonnel = document.querySelector(".list_personnel");
     const petitimage = document.querySelector(".petit_image");
@@ -188,9 +206,9 @@
         personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
         return;
       }
-      let start = (currentPage - 1) * rowsPerPage;
-      let end = start + rowsPerPage;
-      let personnels = allPersonnels.slice(start, end);
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const personnels = allPersonnels.slice(start, end);
 
       personnels.forEach((personnel, index) => {
         const row = document.createElement("tr");
@@ -205,7 +223,7 @@
 
       document.querySelectorAll(".btn-valider").forEach((btn, i) => {
         btn.addEventListener("click", () => {
-          let personnel = allPersonnels[(currentPage - 1) * rowsPerPage + i];
+          const personnel = allPersonnels[(currentPage - 1) * rowsPerPage + i];
           document.getElementById("Id_personnel").value = personnel._id;
           document.getElementById("Id_personnel_contrat").value = personnel._id;
           document.getElementById("Id_personnel_input").value = personnel._id;
@@ -219,7 +237,6 @@
     function afficherPagination() {
       const paginationContainer = document.getElementById("pagination");
       paginationContainer.innerHTML = "";
-
       const totalPages = Math.ceil(allPersonnels.length / rowsPerPage);
 
       const prev = document.createElement("button");
@@ -236,8 +253,8 @@
         const btn = document.createElement("button");
         btn.textContent = i;
         if (i === currentPage) {
-          btn.style.fontWeight = "bold";
           btn.style.backgroundColor = "#ddd";
+          btn.style.fontWeight = "bold";
         }
         btn.addEventListener("click", () => {
           currentPage = i;
@@ -258,48 +275,9 @@
       paginationContainer.appendChild(next);
     }
 
-    const rechercheInput = document.querySelector(".Recherche");
-    rechercheInput.addEventListener("input", () => {
-      const recherche = rechercheInput.value.toLowerCase();
-      const personnelsFiltres = allPersonnels.filter(personnel =>
-        personnel.Nom.toLowerCase().includes(recherche) ||
-        personnel.Prenom.toLowerCase().includes(recherche) ||
-        (personnel.CIN && personnel.CIN.toLowerCase().includes(recherche))
-      );
-      afficherPersonnelsFiltrees(personnelsFiltres);
-    });
-
-    function afficherPersonnelsFiltrees(personnelsFiltres) {
-      personnelContainer.innerHTML = "";
-      if (personnelsFiltres.length === 0) {
-        personnelContainer.innerHTML = `<tr><td colspan="4">Aucun personnel trouvé</td></tr>`;
-        return;
-      }
-
-      personnelsFiltres.forEach((personnel, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${personnel.Nom}</td>
-          <td>${personnel.Prenom}</td>
-          <td>${personnel.CIN || ""}</td>
-          <td><button class="btn-valider"><<</button></td>
-        `;
-        personnelContainer.appendChild(row);
-      });
-
-      document.querySelectorAll(".btn-valider").forEach((btn, i) => {
-        btn.addEventListener("click", () => {
-          const personnel = personnelsFiltres[i];
-          document.getElementById("Id_personnel").value = personnel._id;
-          document.getElementById("Id_personnel_contrat").value = personnel._id;
-          document.getElementById("Id_personnel_input").value = personnel._id;
-          document.getElementById("nom").value = personnel.Nom;
-          document.getElementById("prenom").value = personnel.Prenom;
-          listpersonnel.classList.remove("vue");
-        });
-      });
-    }
-
+    // ------------------------
+    // 🔸 VALIDATION DU FORMULAIRE
+    // ------------------------
     document.getElementById("btn-submit").addEventListener("click", (e) => {
       e.preventDefault();
       const idpersonnel = document.getElementById("Id_personnel_input").value;
@@ -311,7 +289,7 @@
       const Lieu_affectation = document.getElementById("Lieu_affectation").value;
 
       if (!idpersonnel || !Type_contrat || !Date_contrat || !Debut_contrat || !Fin_contrat || !Fonction || !Lieu_affectation) {
-        alert("⚠️ Merci de remplir tous les champs obligatoires !");
+        alert("⚠️ Merci de remplir tous les champs !");
         return;
       }
 
@@ -323,13 +301,7 @@
         body: JSON.stringify(contratData)
       })
         .then(res => res.json())
-        .then(data => {
-          if (data.message) {
-            alert("❌ Erreur : " + data.message);
-          } else {
-            alert("✅ Contrat enregistré avec succès !");
-          }
-        })
+        .then(() => alert("✅ Contrat enregistré avec succès !"))
         .catch(err => {
           console.error("Erreur :", err);
           alert("❌ Erreur serveur !");
@@ -338,6 +310,5 @@
 
     window.onload = chargerpersonnel;
   </script>
-
 </body>
 </html>

@@ -36,9 +36,6 @@ const utilisateurRoutes = require("./routes/utilisateur.route");
 const contratRoutes = require("./routes/contrat.routes");
 const sanctionRoutes = require("./routes/sanction.routes");
 const personnelRoutes = require("./routes/personnel.routes");
-const fournisseurRoutes = require("./routes/fournisseur.routes");
-const stockAchatRoutes = require("./routes/stockAchat.routes");
-const etatStockRoutes = require("./routes/etatStock.routes");
 
 // ➤ Utilisation des routes
 app.use("/api/absance", absanceRoutes);
@@ -46,26 +43,11 @@ app.use("/api/utilisateur", utilisateurRoutes);
 app.use("/api/contrats", contratRoutes);
 app.use("/api/sanctions", sanctionRoutes);
 app.use("/api/personnels", personnelRoutes);
-app.use("/api/fournisseurs", fournisseurRoutes);
-app.use("/api/achat", stockAchatRoutes);
-app.use("/api/etat-stock", etatStockRoutes);
 
 // ➤ Page d’accueil
 app.get("/", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
-
-
-const stockRetourRoutes = require("./routes/stockRetour.routes");
-app.use("/api/retour", stockRetourRoutes);
-
-const stockSortieRoutes = require("./routes/stockSortie.routes");
-app.use("/api/sortie", stockSortieRoutes);
-
-// Import des routes
-const articleRoutes = require("./routes/article.route");
-app.use("/api/articles", articleRoutes);
-
 
 
 // ➤ Lancement du serveur

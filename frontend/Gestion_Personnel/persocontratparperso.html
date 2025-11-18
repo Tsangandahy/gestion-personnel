@@ -7,11 +7,12 @@
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../style.mot_pass.css">
-  <title>PersoManager</title>
+  <title>Longozy</title>
 </head>
 
 <body>
 
+  <!-- 🔹 NAVBAR -->
   <nav class="navbar">
     <div class="logo">
       <h1>Liste de contrat par personne</h1>
@@ -19,20 +20,23 @@
 
     <div class="nav-links">
       <ul>
-        <!-- 🟦 Bouton Retour remplacé -->
+        <!-- Bouton Retour -->
         <li>
           <a href="page_de_garde_gestion_personnel.html" class="btn-retour">
             <i class="fa-solid fa-arrow-left"></i> Retour
           </a>
         </li>
 
-        <!-- 🟡 Nom utilisateur ici -->
-          <li class="Util2">
+        <!-- 🔸 Nom + rôle utilisateur -->
+        <li class="util">
           <label style="color: white;">Utilisateur :</label>
-          <span class="nom">---</span>
+          <span class="user-info">
+            <span class="nom">---</span>
+            <span class="role">(---)</span>
+          </span>
         </li>
 
-        <!-- 🔴 Bouton Déconnexion -->
+        <!-- Déconnexion -->
         <li><a href="#" id="btn_quitter" class="btn-logout">Déconnexion</a></li>
       </ul>
     </div>
@@ -40,6 +44,7 @@
     <img src="../Image/menu_humberger.JPG" alt="menu" class="menu_humberger">
   </nav>
 
+  <!-- 🔹 EN-TÊTE CONTRATS -->
   <header>
     <div class="contrat_header">
       <div style="width: 100%;">
@@ -47,8 +52,10 @@
           <tr>
             <td>Nom</td>
             <td>:</td>
-            <td><input type="text" id="nom" readonly></td>
-<td><img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image"></td>
+            <td>
+              <input type="text" id="nom" readonly>
+              <img src="../Image/recherche_perso.jpg" alt="icone" width="30" height="30" class="petit_image">
+            </td>
           </tr>
           <tr>
             <td>Prénom</td>
@@ -56,7 +63,7 @@
             <td><input type="text" id="prenom" readonly></td>
           </tr>
           <tr style="display: none;">
-            <td>id_personnel</td>
+            <td>ID Personnel</td>
             <td>:</td>
             <td><input type="text" id="Id_personnel_input" readonly></td>
           </tr>
@@ -89,7 +96,7 @@
     </div>
   </header>
 
-  <!-- Liste personnel -->
+  <!-- 🔹 LISTE PERSONNEL -->
   <div class="list_personnel">
     <input type="text" class="Recherche" placeholder="Rechercher...">
     <button class="fermer_liste">X</button>
@@ -110,20 +117,28 @@
   <input type="hidden" id="Id_personnel">
   <input type="hidden" id="Id_personnel_contrat">
 
+  <!-- 🔹 SCRIPT PRINCIPAL -->
   <script>
     // ==========================
     // 🟢 GESTION UTILISATEUR
     // ==========================
     const nomUtilisateur = localStorage.getItem("nom_utilisateur");
-    if (nomUtilisateur) {
+    const roleUtilisateur = localStorage.getItem("role_utilisateur");
+
+    if (nomUtilisateur && roleUtilisateur) {
       document.querySelector(".nom").textContent = nomUtilisateur;
+      const roleAffichage = roleUtilisateur.charAt(0).toUpperCase() + roleUtilisateur.slice(1);
+      document.querySelector(".role").textContent = `(${roleAffichage})`;
     } else {
+      alert("⚠️ Vous devez vous connecter !");
       window.location.href = "../index.html";
     }
 
+    // Déconnexion
     document.getElementById("btn_quitter").addEventListener("click", (e) => {
       e.preventDefault();
       localStorage.removeItem("nom_utilisateur");
+      localStorage.removeItem("role_utilisateur");
       window.location.href = "../index.html";
     });
 
@@ -245,7 +260,7 @@
     }
 
     // ==========================
-    // 🔍 RECHERCHE
+    // 🔍 RECHERCHE PERSONNEL
     // ==========================
     const rechercheInput = document.querySelector(".Recherche");
     rechercheInput.addEventListener("input", () => {
@@ -253,7 +268,7 @@
       const personnelsFiltres = allPersonnels.filter(personnel =>
         personnel.Nom.toLowerCase().includes(recherche) ||
         personnel.Prenom.toLowerCase().includes(recherche) ||
-        personnel.CIN.toLowerCase().includes(recherche)
+        (personnel.CIN && personnel.CIN.toLowerCase().includes(recherche))
       );
       afficherPersonnelsFiltrees(personnelsFiltres);
     });
@@ -330,18 +345,18 @@
     }
 
     // ==========================
-    // ✏️ MODIFIER / SUPPRIMER
+    // ✏️ MODIFIER / SUPPRIMER CONTRAT
     // ==========================
     function supprimerContrat(id) {
       if (confirm("Voulez-vous vraiment supprimer ce contrat ?")) {
         fetch(`http://localhost:5000/api/contrats/${id}`, { method: "DELETE" })
           .then(res => {
             if (res.ok) {
-              alert("Contrat supprimé !");
+              alert("✅ Contrat supprimé !");
               const personnelId = document.getElementById("Id_personnel").value;
               chargerContrats(personnelId, document.getElementById("nom").value + " " + document.getElementById("prenom").value);
             } else {
-              alert("Erreur lors de la suppression");
+              alert("❌ Erreur lors de la suppression");
             }
           })
           .catch(err => console.error("Erreur :", err));
@@ -354,6 +369,7 @@
       window.location.href = `persocontratmodif.html?id=${idContrat}&nom=${encodeURIComponent(nom)}&prenom=${encodeURIComponent(prenom)}`;
     }
 
+    // Démarrage
     window.onload = chargerpersonnel;
   </script>
 </body>

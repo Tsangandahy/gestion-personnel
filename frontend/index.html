@@ -3,20 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PersoManager</title>
+  <title>Longozy</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
     /* --- Reset de base --- */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(to bottom right, #4b6cb7, #182848);
       height: 100vh;
+      margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -25,27 +21,40 @@
 
     /* --- Conteneur principal --- */
     .formulaire_utilisateur {
-      background-color: rgba(255, 255, 255, 0.95);
+      background-color: rgba(255, 255, 255, 0.97);
       padding: 40px 30px;
       border-radius: 15px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
       width: 100%;
-      max-width: 480px;
+      max-width: 450px;
       text-align: center;
     }
 
     .formulaire_utilisateur img {
-      width: 100px;
+      width: 400px;
+      height: 200px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+
+    /* --- Table des champs --- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-bottom: 20px;
     }
 
-    .formulaire_utilisateur h3 {
-      margin-bottom: 30px;
-      color: #182848;
-      font-size: 24px;
+    td {
+      padding: 8px 5px;
+      text-align: left;
+      font-weight: 500;
     }
 
-    /* --- Styles champs --- */
+    td:first-child {
+      width: 30%;
+    }
+
+    /* --- Champs input --- */
     .champs_input {
       width: 100%;
       padding: 12px 15px;
@@ -59,7 +68,7 @@
     .champs_input:focus {
       border-color: #4b6cb7;
       outline: none;
-      box-shadow: 0 0 5px #4b6cb7;
+      box-shadow: 0 0 6px #4b6cb7;
     }
 
     /* --- Bouton connexion --- */
@@ -79,35 +88,27 @@
       background: #182848;
     }
 
-    /* --- Message d'erreur / succès --- */
     #login_message {
       margin-top: 15px;
       font-weight: bold;
+      font-size: 15px;
     }
 
-    /* --- Table simplifiée pour les champs --- */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
+    /* Responsive mobile */
+    @media (max-width: 500px) {
+      td:first-child {
+        width: 40%;
+      }
     }
-
-    td {
-      padding: 8px 5px;
-      text-align: left;
-      font-weight: 500;
-    }
-
-    td:first-child {
-      width: 30%;
-    }
-
   </style>
 </head>
+
 <body>
+
   <div class="formulaire_utilisateur">
+
     <img src="Image/Logo.JPG" alt="Logo">
-    <h3>Connexion Utilisateur</h3>
+
     <table>
       <tr>
         <td>Email</td>
@@ -118,7 +119,11 @@
         <td><input type="password" id="login_mot_pass" class="champs_input" placeholder="Votre mot de passe"></td>
       </tr>
     </table>
-    <button id="btn_login" class="btn_connecter"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
+
+    <button id="btn_login" class="btn_connecter">
+      <i class="fa-solid fa-right-to-bracket"></i> Se connecter
+    </button>
+
     <p id="login_message"></p>
   </div>
 
@@ -147,18 +152,22 @@
 
         if (res.ok) {
           const roleNormalise = (data.utilisateur.role || "Utilisateur").trim().toLowerCase();
+          
           localStorage.setItem("nom_utilisateur", data.utilisateur.nom || mail);
           localStorage.setItem("role_utilisateur", roleNormalise);
 
           msg.style.color = "green";
-          msg.innerText = "Connexion réussie ! Redirection...";
+          msg.innerText = "Connexion réussie...";
+
           setTimeout(() => {
             window.location.href = "menu_principal.html";
           }, 1000);
+
         } else {
           msg.style.color = "red";
           msg.innerText = data.message || "Identifiants invalides";
         }
+
       } catch (err) {
         msg.style.color = "red";
         msg.innerText = "Erreur serveur";
@@ -166,5 +175,6 @@
       }
     });
   </script>
+
 </body>
 </html>
